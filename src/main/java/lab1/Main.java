@@ -1,5 +1,6 @@
 package lab1;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -19,125 +20,65 @@ public class Main {
         registry.register("Potato", Plants.Potato::new);
         registry.register("Tomato", Plants.Tomato::new);
 
-        Scanner scanner = new Scanner(System.in);
 
-        while (true) {
-            try {
-                System.out.println("""
-                    Farm menu
-                    1. Add Farm area
-                    2. Plant list
-                    3. Buy plant
-                    4. Farm areas list
-                    5. Plant farm area
-                    6. Harvest farm area
-                    7. Get report
-                    8. Grow loop
-                    9. Turbo grow
-                    10. Exit
-                    """);
-
-                int mode = scanner.nextInt();
-                scanner.nextLine();
-
-                switch (mode) {
-                    case 1: {
-                        System.out.println("Enter area (m^2)");
-                        int area = scanner.nextInt();
-                        scanner.nextLine();
-                        farm.addNewArea(area);
-                        break;
-                    }
-                    case 2:
-                        var plantList = registry.getNames();
-                        for (int i = 0; i < plantList.size(); i++) {
-                            System.out.println(i + " " + plantList.get(i));
-                        }
-                        break;
-                    case 3: {
-                        System.out.println("Enter plant name");
-                        int idx = scanner.nextInt();
-                        scanner.nextLine();
-                        System.out.println("Enter plant count");
-                        int count = scanner.nextInt();
-                        scanner.nextLine();
-                        Plant toBuy = registry.create(idx);
-                        if (toBuy == null) {
-                            System.out.println("Plant not found");
-                            break;
-                        }
-                        farm.buyPlant(toBuy, count);
-                        break;
-                    }
-                    case 4:
-                        var infos = farm.getFarmAreaInfo();
-                        System.out.println("Index, ID, Area");
-                        for (int i = 0; i< infos.size(); i++) {
-                            System.out.println(i + " " + infos.get(i).id() + " " + infos.get(i).area());
-                        }
-                        break;
-                    case 5: {
-                        System.out.println("Enter area index");
-                        int area_idx = scanner.nextInt();
-                        scanner.nextLine();
-                        System.out.println("Enter plant index");
-                        int plant_idx = scanner.nextInt();
-                        scanner.nextLine();
-                        Plant toPlant = registry.create(plant_idx);
-                        if (toPlant == null) {
-                            System.out.println("Plant not found");
-                            break;
-                        }
-                        var res = farm.plantArea(area_idx, toPlant);
-                        if (!res.success()) {
-                            System.out.println(res.msg());
-                        } else {
-                            System.out.println("Success " + res.count());
-                        }
-                        break;
-                    }
-                    case 6: {
-                        System.out.println("Enter area index");
-                        int area_idx = scanner.nextInt();
-                        scanner.nextLine();
-                        var res = farm.harvestArea(area_idx);
-                        if (!res.success()) {
-                            System.out.println(res.msg());
-                        } else {
-                            System.out.println("Success " + res.count());
-                        }
-                        break;
-                    }
-                    case 7: {
-                        for (FarmReport report: reporter.getReport()) {
-                            System.out.println(report.plantName() + " " + report.increasePercentage() + "x");
-                        }
-                        break;
-                    }
-                    case 8:
-                        farm.areaLoop();
-                        break;
-                    case 9:
-                        farm.customAction(new AreaFunction() {
-                            @Override
-                            public void inspect(FarmArea area) {
-                                Plant plant = area.getCurrentPlant();
-                                if (plant == null) return;
-
-                                while (plant.getState() != PlantGrowState.GREW) {
-                                    plant.grow();
-                                }
-                            }
-                        });
-                        break;
-                    case 10:
-                        return;
-                }
-            } catch (RuntimeException e) {
-                System.out.println("Runtime error, try again " + e );
-                scanner.nextLine();
+        FarmService service = new FarmService() {
+            @Override
+            public List<String> getPlants() {
+                return registry.getNames();
             }
 
-        }
+            @Override
+            public void buyPlants(int plantIndex, int plantCount) {
+                Plant toBuy = registry.create(plantIndex);
+                farm.buyPlant(toBuy, plantCount);
+            }
+
+            @Override
+            public void createFarmArea(int area) {
+                farm.addNewArea(area);
+            }
+
+            @Override
+            public List<FarmAreaInfo> getFarmAreas() {
+                return farm.getFarmAreaInfo();
+            }
+
+            @Override
+            public FarmOpResult plantFarmArea(int areaIndex, int plantIndex) {
+                Plant toPlant = registry.create(plantIndex);
+                return farm.plantArea(areaIndex, toPlant);
+            }
+
+            @Override
+            public FarmOpResult harvestFarmArea(int farmArea) {
+                return farm.harvestArea(farmArea);
+            }
+
+            @Override
+            public void growLoop() {
+                farm.areaLoop();
+            }
+
+            @Override
+            public void turboGrow() {
+                farm.customAction(area -> {
+                    Plant plant = area.getCurrentPlant();
+                    if (plant == null) return;
+
+                    while (plant.getState() != PlantGrowState.GREW) {
+                        plant.grow();
+                    }
+                });
+            }
+
+            @Override
+            public List<FarmReport> getReport() {
+                return reporter.getReport();
+            }
+        };
+
+        View view = new ConsoleView(service);
+
+        view.run();
     }
 }

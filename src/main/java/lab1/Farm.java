@@ -27,7 +27,13 @@ public class Farm {
     }
 
     public FarmOpResult plantArea(int index, Plant plant) {
-        var planted = this.areas.get(index).plant(plant);
+        FarmOpResult planted;
+        try {
+            planted = this.areas.get(index).plant(plant);
+        } catch (IndexOutOfBoundsException e) {
+            throw new FarmException("Area with index " + index + " not found");
+        }
+
         if (planted.success()) {
             notifyListeners(FarmEvent.planted(plant.getPlantName(), planted.count()));
         }
@@ -35,7 +41,12 @@ public class Farm {
     }
 
     public FarmOpResult harvestArea(int index) {
-        FarmArea area = this.areas.get(index);
+        FarmArea area;
+        try {
+            area = this.areas.get(index);
+        } catch (IndexOutOfBoundsException e) {
+            throw new FarmException("Area with index " + index + " not found");
+        }
         Plant currentPlant = area.getCurrentPlant();
 
         if (currentPlant == null) return new FarmOpResult(false, "Nothing planted", 0);

@@ -1,13 +1,11 @@
 package lab1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class PlantRegistry {
-    private List<PlantInfo> registry = new ArrayList<>();
+    private final List<PlantInfo> registry = new ArrayList<>();
 
     public void register(String name, Supplier<Plant> constructor) {
         registry.add(new PlantInfo(name, constructor));
@@ -15,7 +13,7 @@ public class PlantRegistry {
 
     public Plant create(int index) {
         if (index < 0 || index >= registry.size()) {
-            return null;
+            throw new FarmException("Plant with index " + index + " not found");
         }
         return registry.get(index).factory().get();
     }
