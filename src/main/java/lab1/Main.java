@@ -1,7 +1,6 @@
 package lab1;
 
 import java.util.List;
-import java.util.Scanner;
 
 public class Main {
     static void main() {
@@ -11,10 +10,12 @@ public class Main {
         Warehouse warehouse = new RamWarehouse();
 
         Farm farm = new Farm(warehouse);
+
         farm.registerListener(store);
-        farm.registerListener((FarmEvent event) -> {
+        EventListener eventDebugger = (FarmEvent event) -> {
             System.out.println("Event type: " + event.eventType + " count " + event.count);
-        });
+        };
+        farm.registerListener(eventDebugger);
 
         PlantRegistry registry = new PlantRegistry();
         registry.register("Potato", Plants.Potato::new);

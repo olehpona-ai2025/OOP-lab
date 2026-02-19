@@ -1,9 +1,10 @@
 package lab1;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class RamWarehouse implements Warehouse {
-    private final HashMap<String, Integer> content = new HashMap<>();
+    private final Map<String, Integer> content = new HashMap<>();
 
     @Override
     public int getPlantCount(String plant) {
