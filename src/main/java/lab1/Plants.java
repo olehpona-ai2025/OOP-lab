@@ -2,8 +2,8 @@ package lab1;
 
 public class Plants {
     public static class Potato extends Plant{
-        Potato() {
-            super("Potato");
+        Potato(PlantGrowState state) {
+            super("Potato", state);
         }
 
         @Override
@@ -18,8 +18,8 @@ public class Plants {
     }
 
     public static class Tomato extends Plant{
-        Tomato() {
-            super("Tomato");
+        Tomato(PlantGrowState state) {
+            super("Tomato", state);
         }
 
         @Override

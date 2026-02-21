@@ -2,12 +2,12 @@ package lab1;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class PlantRegistry {
     private final List<PlantInfo> registry = new ArrayList<>();
 
-    public void register(String name, Supplier<Plant> constructor) {
+    public void register(String name, Function<PlantGrowState, Plant> constructor) {
         registry.add(new PlantInfo(name, constructor));
     }
 
@@ -15,7 +15,14 @@ public class PlantRegistry {
         if (index < 0 || index >= registry.size()) {
             throw new FarmException("Plant with index " + index + " not found");
         }
-        return registry.get(index).factory().get();
+        return registry.get(index).factory().apply(PlantGrowState.GROWING);
+    }
+
+    public Plant createWithState(int index, PlantGrowState state) {
+        if (index < 0 || index >= registry.size()) {
+            throw new FarmException("Plant with index " + index + " not found");
+        }
+        return registry.get(index).factory().apply(state);
     }
 
     public List<String> getNames() {

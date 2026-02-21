@@ -4,8 +4,9 @@ public abstract class Plant {
     public final String name;
     private PlantGrowState state = PlantGrowState.GROWING;
 
-    Plant(String name) {
+    Plant(String name, PlantGrowState state) {
         this.name = name;
+        this.state = state;
     }
 
     public void grow() {

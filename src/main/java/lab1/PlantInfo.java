@@ -1,6 +1,6 @@
 package lab1;
 
-import java.util.function.Supplier;
+import java.util.function.Function;
 
-public record PlantInfo(String name, Supplier<Plant> factory) {
+public record PlantInfo(String name, Function<PlantGrowState,Plant> factory) {
 }

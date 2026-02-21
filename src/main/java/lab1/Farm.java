@@ -29,6 +29,11 @@ public class Farm {
         this.areas.put(newArea.id, newArea);
     }
 
+    public void loadNewArea(int area, String id) {
+        FarmArea newArea = new FarmArea(id, area);
+        this.areas.put(id, newArea);
+    }
+
     public void removeArea(String id) {
         if (!areas.containsKey(id)) {
             throw new FarmException("Area with id " + id + " not found");
@@ -102,7 +107,8 @@ public class Farm {
         List<FarmAreaInfo> infos = new ArrayList<>();
 
         areas.forEach((key, area) -> {
-            infos.add(new FarmAreaInfo(key, area.getName(), area.area));
+            Plant plant = area.getCurrentPlant();
+            infos.add(new FarmAreaInfo(key, area.getName(), area.area, plant != null? plant.getPlantName(): "null", plant!= null? plant.getState().name(): "null"));
         });
         return infos;
     }
