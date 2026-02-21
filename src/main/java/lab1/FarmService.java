@@ -7,9 +7,11 @@ public interface FarmService {
     void buyPlants(int plantIndex, int plantCount);
 
     void createFarmArea(int area);
+    void removeFarmArea(String id);
+    void setFarmAreaName(String id, String name);
     List<FarmAreaInfo> getFarmAreas();
-    FarmOpResult plantFarmArea(int areaIndex, int plantIndex);
-    FarmOpResult harvestFarmArea(int farmArea);
+    FarmOpResult plantFarmArea(String areaId, int plantIndex);
+    FarmOpResult harvestFarmArea(String farmArea);
 
     void growLoop();
     void turboGrow();

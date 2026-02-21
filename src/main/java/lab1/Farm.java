@@ -1,10 +1,12 @@
 package lab1;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Farm {
-    private final List<FarmArea> areas = new ArrayList<>();
+    private final Map<String, FarmArea> areas = new HashMap<>();
     private final List<EventListener> listeners = new ArrayList<>();
     private final Warehouse warehouse;
 
@@ -23,29 +25,47 @@ public class Farm {
     }
 
     public void addNewArea(int area) {
-        this.areas.add(new FarmArea(area, this.warehouse));
+        FarmArea newArea = new FarmArea(area);
+        this.areas.put(newArea.id, newArea);
     }
 
-    public FarmOpResult plantArea(int index, Plant plant) {
-        FarmOpResult planted;
-        try {
-            planted = this.areas.get(index).plant(plant);
-        } catch (IndexOutOfBoundsException e) {
-            throw new FarmException("Area with index " + index + " not found");
+    public void removeArea(String id) {
+        if (!areas.containsKey(id)) {
+            throw new FarmException("Area with id " + id + " not found");
+        }
+        areas.remove(id);
+    }
+
+    public FarmOpResult plantArea(String id, Plant plant) {
+        FarmArea area;
+        if (this.areas.containsKey(id)) {
+            area = this.areas.get(id);
+        } else {
+            throw new FarmException("Area with index " + id + " not found");
         }
 
+        int neededForPlant = area.getNeededToPlant(plant);
+        int available = warehouse.getPlantCount(plant.getPlantName());
+
+        if (available < neededForPlant){
+            return new FarmOpResult(false, "Not enough to plant, needed " + neededForPlant + " but have " + available, neededForPlant);
+        }
+
+        FarmOpResult planted = area.plant(plant);
+
         if (planted.success()) {
+            warehouse.updatePlantCount(plant.getPlantName(), -neededForPlant);
             notifyListeners(FarmEvent.planted(plant.getPlantName(), planted.count()));
         }
         return planted;
     }
 
-    public FarmOpResult harvestArea(int index) {
+    public FarmOpResult harvestArea(String id) {
         FarmArea area;
-        try {
-            area = this.areas.get(index);
-        } catch (IndexOutOfBoundsException e) {
-            throw new FarmException("Area with index " + index + " not found");
+        if (this.areas.containsKey(id)) {
+            area = this.areas.get(id);
+        } else {
+            throw new FarmException("Area with index " + id + " not found");
         }
         Plant currentPlant = area.getCurrentPlant();
 
@@ -53,6 +73,7 @@ public class Farm {
 
         var harvested = area.harvest();
         if (harvested.success()) {
+            warehouse.updatePlantCount(currentPlant.getPlantName(), harvested.count());
             notifyListeners(FarmEvent.harvested(currentPlant.getPlantName(), harvested.count()));
         }
 
@@ -60,31 +81,36 @@ public class Farm {
     }
 
     public void areaLoop() {
-        for (int idx = 0; idx < areas.size(); idx ++) {
-            FarmArea area = this.areas.get(idx);
+        areas.forEach((_, area) -> {
             if (area.getCurrentPlant() != null ) {
-                if (area.getCurrentPlant().getState() == PlantGrowState.GREW) {
-                    harvestArea(idx);
-                } else {
-                    area.plantGrowLoop();
-                }
+                area.plantGrowLoop();
             }
+        });
+    }
+
+    public void setFarmAreaName(String id, String name) {
+        FarmArea area;
+        if (this.areas.containsKey(id)) {
+            area = this.areas.get(id);
+        } else {
+            throw new FarmException("Area with index " + id + " not found");
         }
+        area.setName(name);
     }
 
     public List<FarmAreaInfo> getFarmAreaInfo() {
         List<FarmAreaInfo> infos = new ArrayList<>();
 
-        areas.forEach((v) -> {
-            infos.add(new FarmAreaInfo(v.id, v.area));
+        areas.forEach((key, area) -> {
+            infos.add(new FarmAreaInfo(key, area.getName(), area.area));
         });
         return infos;
     }
 
     public void customAction (AreaFunction function) {
-        for (FarmArea area: areas) {
+        areas.forEach((_, area) -> {
             function.inspect(area);
-        }
+        });
     }
 
     public void buyPlant(Plant plant, int count) {

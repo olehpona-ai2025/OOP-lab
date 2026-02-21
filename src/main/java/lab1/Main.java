@@ -13,7 +13,7 @@ public class Main {
 
         farm.registerListener(store);
         EventListener eventDebugger = (FarmEvent event) -> {
-            System.out.println("Event type: " + event.eventType + " count " + event.count);
+            System.out.println("Event type: " + event.eventType + " count " + event.count + " plant name " + event.targetPlant);
         };
         farm.registerListener(eventDebugger);
 
@@ -40,18 +40,28 @@ public class Main {
             }
 
             @Override
+            public void removeFarmArea(String area) {
+                farm.removeArea(area);
+            }
+
+            @Override
+            public void setFarmAreaName(String id, String name) {
+                farm.setFarmAreaName(id, name);
+            }
+
+            @Override
             public List<FarmAreaInfo> getFarmAreas() {
                 return farm.getFarmAreaInfo();
             }
 
             @Override
-            public FarmOpResult plantFarmArea(int areaIndex, int plantIndex) {
+            public FarmOpResult plantFarmArea(String areaId, int plantIndex) {
                 Plant toPlant = registry.create(plantIndex);
-                return farm.plantArea(areaIndex, toPlant);
+                return farm.plantArea(areaId, toPlant);
             }
 
             @Override
-            public FarmOpResult harvestFarmArea(int farmArea) {
+            public FarmOpResult harvestFarmArea(String farmArea) {
                 return farm.harvestArea(farmArea);
             }
 

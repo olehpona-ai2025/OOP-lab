@@ -3,36 +3,45 @@ package lab1;
 import java.util.UUID;
 
 public class FarmArea {
-    final String id;
-    final int area;
+    public final String id;
+    public final int area;
+
+    private String name;
 
     private Plant currentPlant = null;
 
-    private final Warehouse warehouse;
-
-    public FarmArea(int area, Warehouse warehouse) {
-        this(UUID.randomUUID().toString(), area, warehouse);
+    public FarmArea(int area) {
+        this(UUID.randomUUID().toString(), area);
+        name = "Area " + this.id.substring(0,4);
     }
 
-    public FarmArea(String id, int area, Warehouse warehouse) {
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String newName) {
+        if (newName == null || newName.isEmpty()) {
+            throw new FarmException("New name incorrect");
+        }
+        name = newName;
+    }
+
+    public FarmArea(String id, int area) {
         this.id = id;
         this.area = area;
-        this.warehouse = warehouse;
     }
 
     public FarmOpResult plant(Plant toPlant) {
-        int available = warehouse.getPlantCount(toPlant.getPlantName());
-
-        int neededForPlant = toPlant.getPlantingCost() * area;
-
-        if (available < neededForPlant){
-            return new FarmOpResult(false, "Not enough to plant, needed " + neededForPlant + " but have " + available, neededForPlant);
+        if (currentPlant != null && currentPlant.getState() == PlantGrowState.GROWING) {
+          return new FarmOpResult(false, "Already planted", 0);
         }
 
         this.currentPlant = toPlant;
+        return new FarmOpResult(true, "", this.getNeededToPlant(toPlant));
+    }
 
-        warehouse.updatePlantCount(this.currentPlant.getPlantName(), -neededForPlant);
-        return new FarmOpResult(true, "", neededForPlant);
+    public int getNeededToPlant(Plant plant) {
+        return plant.getPlantingCost() * area;
     }
 
     public Plant getCurrentPlant() {
@@ -48,7 +57,6 @@ public class FarmArea {
 
         int harvested = this.currentPlant.getBaseYield() * area;
 
-        warehouse.updatePlantCount(this.currentPlant.getPlantName(), harvested);
         this.currentPlant = null;
         return new FarmOpResult(true, "", harvested);
     }

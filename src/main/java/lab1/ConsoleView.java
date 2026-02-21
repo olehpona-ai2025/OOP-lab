@@ -26,7 +26,9 @@ public class ConsoleView implements View {
                     7. Get report
                     8. Grow loop
                     9. Turbo grow
-                    10. Exit
+                    10. Remove farm area
+                    11. Set farm area name
+                    12. Exit
                     """);
 
                 int mode = scanner.nextInt();
@@ -47,7 +49,7 @@ public class ConsoleView implements View {
                         }
                         break;
                     case 3: {
-                        System.out.println("Enter plant name");
+                        System.out.println("Enter plant id");
                         int idx = scanner.nextInt();
                         scanner.nextLine();
                         System.out.println("Enter plant count");
@@ -63,22 +65,21 @@ public class ConsoleView implements View {
                     }
                     case 4:
                         var infos = service.getFarmAreas();
-                        System.out.println("Index, ID, Area");
-                        for (int i = 0; i< infos.size(); i++) {
-                            System.out.println(i + " " + infos.get(i).id() + " " + infos.get(i).area());
+                        System.out.println("ID, Area, Name");
+                        for (FarmAreaInfo info : infos) {
+                            System.out.println(info.id() + ", " + info.area() + ", " + info.name());
                         }
                         break;
                     case 5: {
-                        System.out.println("Enter area index");
-                        int areaIdx = scanner.nextInt();
-                        scanner.nextLine();
+                        System.out.println("Enter area id");
+                        String areaId = scanner.nextLine();
                         System.out.println("Enter plant index");
                         int plantIdx = scanner.nextInt();
                         scanner.nextLine();
 
                         FarmOpResult res;
                         try {
-                            res = service.plantFarmArea(areaIdx, plantIdx);
+                            res = service.plantFarmArea(areaId, plantIdx);
                         } catch (FarmException e) {
                             System.out.println("Exception received, msg: " + e.getMessage());
                             break;
@@ -93,12 +94,11 @@ public class ConsoleView implements View {
                     }
                     case 6: {
                         System.out.println("Enter area index");
-                        int areaIdx = scanner.nextInt();
-                        scanner.nextLine();
+                        String areaId = scanner.nextLine();
                         FarmOpResult res;
 
                         try {
-                            res = service.harvestFarmArea(areaIdx);
+                            res = service.harvestFarmArea(areaId);
                         } catch (FarmException e) {
                             System.out.println("Exception received, msg: " + e.getMessage());
                             break;
@@ -123,7 +123,31 @@ public class ConsoleView implements View {
                     case 9:
                         service.turboGrow();
                         break;
-                    case 10:
+                    case 10: {
+                        System.out.println("Enter area id");
+                        String areaId = scanner.nextLine();
+                        try {
+                            service.removeFarmArea(areaId);
+                        } catch (FarmException e) {
+                            System.out.println("Exception received, msg: " + e.getMessage());
+                            break;
+                        }
+                        break;
+                    }
+                    case 11: {
+                        System.out.println("Enter area id");
+                        String areaId = scanner.nextLine();
+                        System.out.println("Enter area name");
+                        String areaName = scanner.nextLine();
+                        try {
+                            service.setFarmAreaName(areaId, areaName);
+                        } catch (FarmException e) {
+                            System.out.println("Exception received, msg: " + e.getMessage());
+                            break;
+                        }
+                        break;
+                    }
+                    case 12:
                         return;
                 }
             } catch (RuntimeException e) {
