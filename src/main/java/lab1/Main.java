@@ -1,6 +1,17 @@
 package lab1;
 
-import java.util.List;
+import lab1.core.*;
+import lab1.core.plants.Potato;
+import lab1.core.plants.Tomato;
+import lab1.core.state.FarmStateMapper;
+import lab1.infrastructure.storage.*;
+import lab1.infrastructure.ui.ConsoleView;
+import lab1.service.FarmService;
+import lab1.service.View;
+import lab1.core.model.*;
+import lab1.service.*;
+
+import java.sql.SQLException;
 
 public class Main {
     static void main() {
@@ -9,84 +20,32 @@ public class Main {
         Reporter reporter = store.createrReporter();
         Warehouse warehouse = new RamWarehouse();
 
-        Farm farm = new Farm(warehouse);
+        Farm farm = new Farm();
+        EventNotifier eventNotifier = new ListEventNotifier();
 
-        farm.registerListener(store);
+        eventNotifier.registerListener(store);
         EventListener eventDebugger = (FarmEvent event) -> {
             System.out.println("Event type: " + event.eventType + " count " + event.count + " plant name " + event.targetPlant);
         };
-        farm.registerListener(eventDebugger);
+        eventNotifier.registerListener(eventDebugger);
 
         PlantRegistry registry = new PlantRegistry();
-        registry.register("Potato", Plants.Potato::new);
-        registry.register("Tomato", Plants.Tomato::new);
+        registry.register(Potato::new);
+        registry.register(Tomato::new);
+        FarmStore farmStore;
+        try {
+             farmStore = new SqliteStateStore("db.db");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
+        try {
+            FarmStateMapper.setFarmState(farm, farmStore.loadFarmState(), registry);
+        } catch (RuntimeException e) {
+            System.out.println("Failed loading data");
+        }
 
-        FarmService service = new FarmService() {
-            @Override
-            public List<String> getPlants() {
-                return registry.getNames();
-            }
-
-            @Override
-            public void buyPlants(int plantIndex, int plantCount) {
-                Plant toBuy = registry.create(plantIndex);
-                farm.buyPlant(toBuy, plantCount);
-            }
-
-            @Override
-            public void createFarmArea(int area) {
-                farm.addNewArea(area);
-            }
-
-            @Override
-            public void removeFarmArea(String area) {
-                farm.removeArea(area);
-            }
-
-            @Override
-            public void setFarmAreaName(String id, String name) {
-                farm.setFarmAreaName(id, name);
-            }
-
-            @Override
-            public List<FarmAreaInfo> getFarmAreas() {
-                return farm.getFarmAreaInfo();
-            }
-
-            @Override
-            public FarmOpResult plantFarmArea(String areaId, int plantIndex) {
-                Plant toPlant = registry.create(plantIndex);
-                return farm.plantArea(areaId, toPlant);
-            }
-
-            @Override
-            public FarmOpResult harvestFarmArea(String farmArea) {
-                return farm.harvestArea(farmArea);
-            }
-
-            @Override
-            public void growLoop() {
-                farm.areaLoop();
-            }
-
-            @Override
-            public void turboGrow() {
-                farm.customAction(area -> {
-                    Plant plant = area.getCurrentPlant();
-                    if (plant == null) return;
-
-                    while (plant.getState() != PlantGrowState.GREW) {
-                        plant.grow();
-                    }
-                });
-            }
-
-            @Override
-            public List<FarmReport> getReport() {
-                return reporter.getReport();
-            }
-        };
+        FarmService service = new BaseService(registry, warehouse, eventNotifier, farm, farmStore, reporter);
 
         View view = new ConsoleView(service);
 
