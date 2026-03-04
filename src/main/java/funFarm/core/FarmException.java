@@ -1,7 +1,7 @@
 package funFarm.core;
 
 public class FarmException extends RuntimeException{
-    FarmException(String msg) {
+    public FarmException(String msg) {
         super(msg);
     }
 }

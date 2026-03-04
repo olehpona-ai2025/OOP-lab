@@ -21,7 +21,7 @@ public class PlantRegistry {
 
     public Plant create(String name) {
         if (!registry.containsKey(name)) {
-            throw new FarmException("Plant with index " + name + " not found");
+            return null;
         }
         return registry.get(name).factory().apply(PlantGrowState.GROWING);
     }
@@ -31,7 +31,7 @@ public class PlantRegistry {
             throw new FarmException("State should not be null");
         }
         if (!registry.containsKey(name)) {
-            throw new FarmException("Plant with index " + name + " not found");
+            return null;
         }
         return registry.get(name).factory().apply(state);
     }

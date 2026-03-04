@@ -68,11 +68,11 @@ public class PlantRegistryTest {
     }
 
     @Test
-    void shouldThrowWhenPlantNotFound() {
+    void shouldReturnNullWhenPlantNotFound() {
         PlantRegistry registry = new PlantRegistry();
 
-        assertThatThrownBy(() -> registry.create("")).isInstanceOf(FarmException.class);
-        assertThatThrownBy(() -> registry.createWithState("", PlantGrowState.GREW)).isInstanceOf(FarmException.class);
+        assertThat(registry.create("")).isNull();
+        assertThat(registry.createWithState("", PlantGrowState.GREW)).isNull();
     }
 
     @Test

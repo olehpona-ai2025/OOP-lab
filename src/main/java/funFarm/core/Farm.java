@@ -25,14 +25,14 @@ public class Farm {
         this.areas.put(id, newArea);
     }
 
-    public void removeArea(String id) throws FarmException {
+    public void removeArea(String id) {
         if (!areas.containsKey(id)) {
-            throw new FarmException("Area with id " + id + " not found");
+            throw new FarmException("Area with index " + id + " not found");
         }
         areas.remove(id);
     }
 
-    public int getNeededToPlant(String id, Plant plant) throws FarmException {
+    public int getNeededToPlant(String id, Plant plant) {
         if (this.areas.containsKey(id)) {
             return this.areas.get(id).getNeededToPlant(plant);
         } else {
@@ -40,24 +40,24 @@ public class Farm {
         }
     }
 
-    public PlantResult plantArea(String id, Plant plant) throws FarmException {
+    public PlantResult plantArea(String id, Plant plant) {
         FarmArea area;
         if (this.areas.containsKey(id)) {
             area = this.areas.get(id);
         } else {
-            throw new FarmException("Area with index " + id + " not found");
+            return new PlantResult(false, "Area with index " + id + " not found", 0);
         }
 
 
         return area.plant(plant);
     }
 
-    public HarvestResult harvestArea(String id) throws FarmException {
+    public HarvestResult harvestArea(String id) {
         FarmArea area;
         if (this.areas.containsKey(id)) {
             area = this.areas.get(id);
         } else {
-            throw new FarmException("Area with index " + id + " not found");
+            return new HarvestResult(false,"Area with index " + id + " not found", 0, null);
         }
 
         return area.harvest();
@@ -71,7 +71,7 @@ public class Farm {
         });
     }
 
-    public void setFarmAreaName(String id, String name) throws FarmException {
+    public void setFarmAreaName(String id, String name) {
         FarmArea area;
         if (this.areas.containsKey(id)) {
             area = this.areas.get(id);
@@ -91,12 +91,10 @@ public class Farm {
         return infos;
     }
 
-    public void customAction (AreaFunction function) throws FarmException {
+    public void customAction (AreaFunction function) {
         if (function == null) {
             throw new FarmException("Area function can't be null");
         }
-        areas.forEach((_, area) -> {
-            function.inspect(area);
-        });
+        areas.forEach((_, area) -> function.inspect(area));
     }
 }

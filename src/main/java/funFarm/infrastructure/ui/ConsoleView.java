@@ -22,11 +22,11 @@ public class ConsoleView implements View {
         this.service = service;
     }
 
-    @Override
     public void run() {
         Scanner scanner = new Scanner(System.in);
 
-        while (true) {
+        boolean running = true;
+        while (running) {
             try {
                 System.out.println("""
                     Farm menu
@@ -45,14 +45,11 @@ public class ConsoleView implements View {
                     13. Exit
                     """);
 
-                int mode = scanner.nextInt();
-                scanner.nextLine();
+                int mode = readInt(scanner, "Enter menu option:");
 
                 switch (mode) {
                     case 1: {
-                        System.out.println("Enter area (m^2)");
-                        int area = scanner.nextInt();
-                        scanner.nextLine();
+                        int area = readInt(scanner, "Enter area (m^2):");
                         service.createFarmArea(area);
                         break;
                     }
@@ -63,15 +60,11 @@ public class ConsoleView implements View {
                         }
                         break;
                     case 3: {
-                        System.out.println("Enter plant name");
-                        String name = scanner.nextLine();
-                        System.out.println("Enter plant count");
-                        int count = scanner.nextInt();
-                        scanner.nextLine();
-                        try {
-                            service.buyPlants(name, count);
-                        } catch (RuntimeException e) {
-                            System.out.println("Exception received, msg: " + e.getMessage());
+                        String name = readString(scanner, "Enter plant name:");
+                        int count = readInt(scanner, "Enter plant count:");
+
+                        if (!service.buyPlants(name, count)){
+                            System.out.println("Failed buying plants");
                         }
 
                         break;
@@ -84,10 +77,8 @@ public class ConsoleView implements View {
                         }
                         break;
                     case 5: {
-                        System.out.println("Enter area id");
-                        String areaId = scanner.nextLine();
-                        System.out.println("Enter plant name");
-                        String plantName = scanner.nextLine();
+                        String areaId = readString(scanner, "Enter area id:");
+                        String plantName = readString(scanner, "Enter plant name:");
 
                         PlantResult res;
                         try {
@@ -105,8 +96,7 @@ public class ConsoleView implements View {
                         break;
                     }
                     case 6: {
-                        System.out.println("Enter area index");
-                        String areaId = scanner.nextLine();
+                        String areaId = readString(scanner, "Enter area index:");
                         HarvestResult res;
 
                         try {
@@ -136,40 +126,56 @@ public class ConsoleView implements View {
                         service.turboGrow();
                         break;
                     case 10: {
-                        System.out.println("Enter area id");
-                        String areaId = scanner.nextLine();
-                        try {
-                            service.removeFarmArea(areaId);
-                        } catch (RuntimeException e) {
-                            System.out.println("Exception received, msg: " + e.getMessage());
-                            break;
-                        }
+                        String areaId = readString(scanner, "Enter area id:");
+
+                        service.removeFarmArea(areaId);
+                        System.out.println("Area removed successfully.");
                         break;
                     }
                     case 11: {
-                        System.out.println("Enter area id");
-                        String areaId = scanner.nextLine();
-                        System.out.println("Enter area name");
-                        String areaName = scanner.nextLine();
-                        try {
-                            service.setFarmAreaName(areaId, areaName);
-                        } catch (RuntimeException e) {
-                            System.out.println("Exception received, msg: " + e.getMessage());
-                            break;
-                        }
+                        String areaId = readString(scanner, "Enter area id:");
+                        String areaName = readString(scanner, "Enter area name:");
+
+                        service.setFarmAreaName(areaId, areaName);
+                        System.out.println("Name set successfully.");
                         break;
                     }
                     case 12:
                         service.saveData();
                         break;
                     case 13:
-                        return;
+                        running = false;
+                        break;
+                    default:
+                        System.out.println("Unknown option.");
                 }
+            } catch (funFarm.core.FarmException | funFarm.core.WarehouseException e) {
+                System.out.println("Farm logic error: " + e.getMessage());
             } catch (RuntimeException e) {
-                System.out.println("Runtime error, try again " + e );
-                scanner.nextLine();
+                System.out.println("Unknown system error: " + e);
             }
+        }
+    }
 
+    private int readInt(Scanner scanner, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            try {
+                return Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Please enter a valid number.");
+            }
+        }
+    }
+
+    private String readString(Scanner scanner, String prompt) {
+        while (true) {
+            System.out.println(prompt);
+            String input = scanner.nextLine().trim();
+            if (!input.isEmpty()) {
+                return input;
+            }
+            System.out.println("Error: String cannot be empty. Try again.");
         }
     }
 }

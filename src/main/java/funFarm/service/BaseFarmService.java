@@ -1,10 +1,8 @@
 package funFarm.service;
 
-import funFarm.core.Farm;
-import funFarm.core.Warehouse;
+import funFarm.core.*;
 import funFarm.core.model.*;
 import funFarm.core.plants.Plant;
-import funFarm.core.PlantRegistry;
 import funFarm.core.state.FarmState;
 import funFarm.core.state.FarmStateMapper;
 import org.springframework.stereotype.Component;
@@ -34,9 +32,15 @@ public class BaseFarmService implements FarmService {
     }
 
     @Override
-    public void buyPlants(String plantName, int plantCount) {
+    public boolean buyPlants(String plantName, int plantCount) {
         Plant toBuy = registry.create(plantName);
-        warehouse.updatePlantCount(toBuy.getPlantName(), plantCount);
+        if (toBuy == null) throw new FarmException("Plant '" + plantName + "' not found in registry!");
+        try {
+            warehouse.updatePlantCount(toBuy.getPlantName(), plantCount);
+        } catch (WarehouseException e) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -62,7 +66,15 @@ public class BaseFarmService implements FarmService {
     @Override
     public PlantResult plantFarmArea(String areaId, String plantName) {
         Plant toPlant = registry.create(plantName);
-        int neededForPlant = farm.getNeededToPlant(areaId, toPlant);
+        if (toPlant == null) return new PlantResult(false, "Plant '" + plantName + "' not found in registry!", 0);
+
+        int neededForPlant;
+        try {
+            neededForPlant = farm.getNeededToPlant(areaId, toPlant);
+        } catch (FarmException e) {
+            return new PlantResult(false, e.getMessage(), 0);
+        }
+
         if (warehouse.getPlantCount(plantName) < neededForPlant) {
             return new PlantResult(false, "Not enough in warehouse", 0);
         }

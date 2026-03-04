@@ -96,11 +96,11 @@ class FarmTest {
     }
 
     @Test
-    void shouldThrowWhenPlantingNonExistentArea() {
+    void shouldUnsuccessPlantingNonExistentArea() {
         Plant plantMock = mock(Plant.class);
 
-        assertThatThrownBy(() -> farm.plantArea("not-found", plantMock))
-                .isInstanceOf(FarmException.class);
+        assertThat(farm.plantArea("not-found", plantMock).success())
+                .isFalse();
     }
 
     @Test
@@ -126,9 +126,9 @@ class FarmTest {
     }
 
     @Test
-    void shouldThrowWhenHarvestingNonExistentArea() {
-        assertThatThrownBy(() -> farm.harvestArea("null"))
-                .isInstanceOf(FarmException.class);
+    void shouldUnsuccessHarvestingNonExistentArea() {
+        assertThat(farm.harvestArea("null").success())
+                .isFalse();
     }
 
     @Test

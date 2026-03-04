@@ -1,7 +1,5 @@
 package funFarm.service;
 
-import funFarm.core.FarmException;
-import funFarm.core.WarehouseException;
 import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.FarmReport;
 import funFarm.core.model.HarvestResult;
@@ -11,14 +9,14 @@ import java.util.List;
 
 public interface FarmService {
     List<String> getPlants();
-    void buyPlants(String plantName, int plantCount) throws WarehouseException, FarmException;
+    boolean buyPlants(String plantName, int plantCount);
 
     void createFarmArea(int area);
-    void removeFarmArea(String id) throws FarmException;
-    void setFarmAreaName(String id, String name) throws FarmException;
+    void removeFarmArea(String id);
+    void setFarmAreaName(String id, String name);
     List<FarmAreaInfo> getFarmAreas();
-    PlantResult plantFarmArea(String areaId, String plantName) throws WarehouseException, FarmException;
-    HarvestResult harvestFarmArea(String farmArea)throws WarehouseException, FarmException;
+    PlantResult plantFarmArea(String areaId, String plantName);
+    HarvestResult harvestFarmArea(String farmArea);
 
     void growLoop();
     void turboGrow();
