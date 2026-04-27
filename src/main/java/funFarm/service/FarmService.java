@@ -4,11 +4,13 @@ import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.FarmReport;
 import funFarm.core.model.HarvestResult;
 import funFarm.core.model.PlantResult;
+import funFarm.core.model.WarehouseInfo;
+import funFarm.core.plants.Plant;
 
 import java.util.List;
 
 public interface FarmService {
-    List<String> getPlants();
+    List<Plant> getPlants();
     boolean buyPlants(String plantName, int plantCount);
 
     void createFarmArea(int area);
@@ -22,6 +24,7 @@ public interface FarmService {
     void turboGrow();
 
     List<FarmReport> getReport();
+    List<WarehouseInfo> getWarehouseInfo();
 
-    void saveData();
+    void loadData();
 }

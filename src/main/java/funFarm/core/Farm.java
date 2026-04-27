@@ -15,9 +15,10 @@ import java.util.Map;
 public class Farm {
     private final Map<String, FarmArea> areas = new HashMap<>();
 
-    public void addNewArea(int area) {
+    public String addNewArea(int area) {
         FarmArea newArea = new FarmArea(area);
         this.areas.put(newArea.id, newArea);
+        return newArea.id;
     }
 
     public void loadNewArea(int area, String id) {
@@ -81,12 +82,19 @@ public class Farm {
         area.setName(name);
     }
 
+    public FarmAreaInfo getFarmAreaInfo(String id) {
+        if (this.areas.containsKey(id)) {
+            return this.areas.get(id).getInfo();
+        } else {
+            throw new FarmException("Area with index " + id + " not found");
+        }
+    }
+
     public List<FarmAreaInfo> getFarmAreaInfo() {
         List<FarmAreaInfo> infos = new ArrayList<>();
 
-        areas.forEach((key, area) -> {
-            Plant plant = area.getCurrentPlant();
-            infos.add(new FarmAreaInfo(key, area.getName(), area.area, plant != null? plant.getPlantName(): "null", plant!= null? plant.getState().name(): "null"));
+        areas.forEach((_, area) -> {
+            infos.add(area.getInfo());
         });
         return infos;
     }

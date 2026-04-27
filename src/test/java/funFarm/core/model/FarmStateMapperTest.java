@@ -3,6 +3,7 @@ package funFarm.core.model;
 import funFarm.core.Farm;
 import funFarm.core.PlantRegistry;
 import funFarm.core.plants.Plant;
+import funFarm.core.state.FarmAreaState;
 import funFarm.core.state.FarmState;
 import funFarm.core.state.FarmStateMapper;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,8 @@ public class FarmStateMapperTest {
         FarmState state = FarmStateMapper.getFarmState(farmMock);
         assertThat(state).isNotNull();
         assertThat(state.farmAreaStateList()).isNotNull().isNotEmpty().hasSize(2).containsExactlyInAnyOrder(
-                new FarmAreaInfo("1", "Test1", 100, "null", "null"),
-                new FarmAreaInfo("2", "Test2", 300, "Potato", "GROWING")
+                new FarmAreaState("1", "Test1", 100, "null", "null"),
+                new FarmAreaState("2", "Test2", 300, "Potato", "GROWING")
         );
     }
 
@@ -50,8 +51,8 @@ public class FarmStateMapperTest {
         Plant tomatoMock = mock(Plant.class);
 
         FarmState state = new FarmState(List.of(
-                new FarmAreaInfo("1", "Test1", 100, "Potato", "GROWING"),
-                new FarmAreaInfo("2", "Test2", 500, "Tomato", "GROWING")
+                new FarmAreaState("1", "Test1", 100, "Potato", "GROWING"),
+                new FarmAreaState("2", "Test2", 500, "Tomato", "GROWING")
         ));
 
         when(registryMock.createWithState(eq("Potato"), any())).thenReturn(potatoMock);
@@ -69,5 +70,33 @@ public class FarmStateMapperTest {
         verify(farmMock).plantArea(eq("2"), eq(tomatoMock));
 
         verifyNoMoreInteractions(farmMock);
+    }
+    @Test
+    void shouldGetFarmAreaState() {
+        FarmAreaInfo info = new FarmAreaInfo("1", "Test1", 100, "Potato", "GROWING");
+        FarmAreaState state = FarmStateMapper.getFarmAreaState(info);
+        
+        assertThat(state).isNotNull();
+        assertThat(state.id()).isEqualTo("1");
+        assertThat(state.name()).isEqualTo("Test1");
+        assertThat(state.area()).isEqualTo(100);
+        assertThat(state.plantName()).isEqualTo("Potato");
+        assertThat(state.plantState()).isEqualTo("GROWING");
+    }
+
+    @Test
+    void shouldCorrectlySetFarmStateWithNullPlant() {
+        Farm farmMock = mock(Farm.class);
+        PlantRegistry registryMock = mock(PlantRegistry.class);
+
+        FarmState state = new FarmState(List.of(
+                new FarmAreaState("1", "Test1", 100, null, null)
+        ));
+
+        FarmStateMapper.setFarmState(farmMock, state, registryMock);
+
+        verify(farmMock).loadNewArea(100, "1");
+        verify(farmMock).setFarmAreaName("1", "Test1");
+        verifyNoInteractions(registryMock);
     }
 }

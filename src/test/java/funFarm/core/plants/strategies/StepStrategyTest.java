@@ -11,32 +11,32 @@ class StepStrategyTest {
     void shouldGrowStepByStep() {
         StepStrategy strategy = new StepStrategy(3);
 
-        PlantGrowState state1 = strategy.grow(PlantGrowState.GROWING);
+        PlantGrowState state1 = strategy.grow(PlantGrowState.GROWING, 1);
         assertThat(state1).isEqualTo(PlantGrowState.GROWING);
 
-        PlantGrowState state2 = strategy.grow(state1);
+        PlantGrowState state2 = strategy.grow(state1, 2);
         assertThat(state2).isEqualTo(PlantGrowState.GROWING);
 
-        PlantGrowState state3 = strategy.grow(state2);
+        PlantGrowState state3 = strategy.grow(state2, 3);
         assertThat(state3).isEqualTo(PlantGrowState.GREW);
 
-        PlantGrowState state4 = strategy.grow(state3);
+        PlantGrowState state4 = strategy.grow(state3, 4);
         assertThat(state4).isEqualTo(PlantGrowState.GREW);
 
-        PlantGrowState state5 = strategy.grow(state4);
+        PlantGrowState state5 = strategy.grow(state4, 5);
         assertThat(state5).isEqualTo(PlantGrowState.GREW);
 
-        PlantGrowState state6 = strategy.grow(state5);
+        PlantGrowState state6 = strategy.grow(state5, 6);
         assertThat(state6).isEqualTo(PlantGrowState.OVERGREW);
 
-        PlantGrowState state7 = strategy.grow(state6);
+        PlantGrowState state7 = strategy.grow(state6, 7);
         assertThat(state7).isEqualTo(PlantGrowState.OVERGREW);
     }
     
     @Test
     void shouldInstantlyReturnOvergrew_whenStateIsAlreadyOvergrew() {
         StepStrategy strategy = new StepStrategy(10);
-        PlantGrowState result = strategy.grow(PlantGrowState.OVERGREW);
+        PlantGrowState result = strategy.grow(PlantGrowState.OVERGREW, 0);
         
         assertThat(result).isEqualTo(PlantGrowState.OVERGREW);
     }

@@ -111,7 +111,7 @@ class FarmTest {
 
         when(plantMock.getPlantName()).thenReturn("TestPlant");
         when(plantMock.getState()).thenReturn(PlantGrowState.GREW);
-        when(plantMock.getBaseYield()).thenReturn(2);
+        when(plantMock.getYield()).thenReturn(2);
 
         farm.plantArea("test", plantMock);
         
@@ -121,8 +121,8 @@ class FarmTest {
         assertThat(result.targetPlant()).isEqualTo("TestPlant");
 
         List<FarmAreaInfo> infos = farm.getFarmAreaInfo();
-        assertThat(infos.getFirst().plantName()).isEqualTo("null");
-        assertThat(infos.getFirst().plantState()).isEqualTo("null");
+        assertThat(infos.getFirst().plantName()).isNull();
+        assertThat(infos.getFirst().plantState()).isNull();
     }
 
     @Test
@@ -200,6 +200,20 @@ class FarmTest {
     @Test
     void shouldThrowOnNullCustomAction() {
         assertThatThrownBy(() -> farm.customAction(null))
+                .isInstanceOf(FarmException.class);
+    }
+    @Test
+    void shouldGetFarmAreaInfoById() {
+        farm.loadNewArea(10, "test1");
+        
+        FarmAreaInfo info = farm.getFarmAreaInfo("test1");
+        assertThat(info.id()).isEqualTo("test1");
+        assertThat(info.area()).isEqualTo(10);
+    }
+
+    @Test
+    void shouldThrowWhenGettingFarmAreaInfoForNonExistentArea() {
+        assertThatThrownBy(() -> farm.getFarmAreaInfo("null"))
                 .isInstanceOf(FarmException.class);
     }
 }

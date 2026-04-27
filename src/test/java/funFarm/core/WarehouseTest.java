@@ -42,11 +42,8 @@ public abstract class WarehouseTest {
     @Test
     void shouldReturnZeroOnFirstInteraction() {
         Warehouse warehouse = getWarehouse();
-
         assertThat(warehouse.getPlantCount("Test")).isZero();
-
         warehouse.updatePlantCount("Test", 2);
-
         assertThat(warehouse.getPlantCount("Test")).isNotZero();
     }
 

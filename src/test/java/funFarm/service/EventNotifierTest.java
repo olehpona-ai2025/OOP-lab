@@ -39,5 +39,6 @@ public abstract class EventNotifierTest {
 
         FarmEvent toNotify = FarmEvent.planted("Test", 0);
         notifier.notifyListeners(toNotify);
+        assertThat(count.get()).isEqualTo(1);
     }
 }

@@ -1,29 +1,26 @@
 package funFarm.core;
 
 import funFarm.core.model.PlantGrowState;
-import funFarm.core.plants.PlantInfo;
 import funFarm.core.plants.Plant;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 @Component
 public class PlantRegistry {
-    private final Map<String, PlantInfo> registry = new HashMap<>();
+    private final Map<String, Plant> registry = new HashMap<>();
 
-    public void register(Function<PlantGrowState, Plant> constructor) {
-        String name = constructor.apply(PlantGrowState.GROWING).getPlantName();
-        registry.put(name, new PlantInfo(name, constructor));
+    public void register(Plant plant) {
+        registry.put(plant.getPlantName(), plant);
     }
 
     public Plant create(String name) {
         if (!registry.containsKey(name)) {
             return null;
         }
-        return registry.get(name).factory().apply(PlantGrowState.GROWING);
+        return new Plant(registry.get(name), PlantGrowState.GROWING);
     }
 
     public Plant createWithState(String name, PlantGrowState state) {
@@ -33,10 +30,10 @@ public class PlantRegistry {
         if (!registry.containsKey(name)) {
             return null;
         }
-        return registry.get(name).factory().apply(state);
+        return new Plant(registry.get(name), state);
     }
 
-    public List<String> getNames() {
-        return registry.keySet().stream().toList();
+    public List<Plant> getPlants() {
+        return registry.values().stream().toList();
     }
 }

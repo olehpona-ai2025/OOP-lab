@@ -10,8 +10,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component("SqlWarehouse")
-@Primary
+//@Component("SqlWarehouse")
 public class SqlWarehouse implements Warehouse {
     private final Connection conn;
 

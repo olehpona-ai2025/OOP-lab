@@ -4,6 +4,8 @@ import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.FarmReport;
 import funFarm.core.model.HarvestResult;
 import funFarm.core.model.PlantResult;
+import funFarm.core.model.WarehouseInfo;
+import funFarm.core.plants.Plant;
 import funFarm.service.FarmService;
 import funFarm.service.View;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +43,9 @@ public class ConsoleView implements View {
                     9. Turbo grow
                     10. Remove farm area
                     11. Set farm area name
-                    12. Save farmState
-                    13. Exit
+                    12. Load farmState
+                    13. Warehouse info
+                    14. Exit
                     """);
 
                 int mode = readInt(scanner, "Enter menu option:");
@@ -55,8 +58,11 @@ public class ConsoleView implements View {
                     }
                     case 2:
                         var plantList = service.getPlants();
-                        for (int i = 0; i < plantList.size(); i++) {
-                            System.out.println(i + " " + plantList.get(i));
+
+                        System.out.println("Plant name, Planting cost, Base Yield");
+
+                        for (Plant plant : plantList) {
+                            System.out.println(plant.getPlantName() + " " + plant.getPlantingCost() + " " + plant.getBaseYield());
                         }
                         break;
                     case 3: {
@@ -141,9 +147,21 @@ public class ConsoleView implements View {
                         break;
                     }
                     case 12:
-                        service.saveData();
+                        service.loadData();
                         break;
-                    case 13:
+                    case 13: {
+                        var warehouseItems = service.getWarehouseInfo();
+                        if (warehouseItems.isEmpty()) {
+                            System.out.println("Warehouse is empty.");
+                        } else {
+                            System.out.println("Plant Name, Count");
+                            for (WarehouseInfo item : warehouseItems) {
+                                System.out.println(item.plantName() + ", " + item.count());
+                            }
+                        }
+                        break;
+                    }
+                    case 14:
                         running = false;
                         break;
                     default:

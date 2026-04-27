@@ -27,8 +27,8 @@ public class BaseFarmService implements FarmService {
         this.reporter = reporter;
     }
     @Override
-    public List<String> getPlants() {
-        return registry.getNames();
+    public List<Plant> getPlants() {
+        return registry.getPlants();
     }
 
     @Override
@@ -45,17 +45,20 @@ public class BaseFarmService implements FarmService {
 
     @Override
     public void createFarmArea(int area) {
-        farm.addNewArea(area);
+        String id = farm.addNewArea(area);
+        farmStore.updateFarmAreaState(FarmStateMapper.getFarmAreaState(farm.getFarmAreaInfo(id)));
     }
 
     @Override
     public void removeFarmArea(String area) {
         farm.removeArea(area);
+        farmStore.removeFarmArea(area);
     }
 
     @Override
     public void setFarmAreaName(String id, String name) {
         farm.setFarmAreaName(id, name);
+        farmStore.updateFarmAreaState(FarmStateMapper.getFarmAreaState(farm.getFarmAreaInfo(id)));
     }
 
     @Override
@@ -82,6 +85,7 @@ public class BaseFarmService implements FarmService {
         if (result.success()) {
             warehouse.updatePlantCount(toPlant.getPlantName(), -result.planted());
             notifier.notifyListeners(FarmEvent.planted(plantName, result.planted()));
+            farmStore.updateFarmAreaState(FarmStateMapper.getFarmAreaState(farm.getFarmAreaInfo(areaId)));
         }
         return result;
     }
@@ -92,6 +96,7 @@ public class BaseFarmService implements FarmService {
         if (result.success()) {
             warehouse.updatePlantCount(result.targetPlant(), result.harvested());
             notifier.notifyListeners(FarmEvent.harvested(result.targetPlant(), result.harvested()));
+            farmStore.updateFarmAreaState(FarmStateMapper.getFarmAreaState(farm.getFarmAreaInfo(farmArea)));
         }
         return result;
     }
@@ -99,6 +104,7 @@ public class BaseFarmService implements FarmService {
     @Override
     public void growLoop() {
         farm.areaLoop();
+        saveData();
     }
 
     @Override
@@ -111,6 +117,7 @@ public class BaseFarmService implements FarmService {
                 plant.grow();
             }
         });
+        saveData();
     }
 
     @Override
@@ -119,8 +126,17 @@ public class BaseFarmService implements FarmService {
     }
 
     @Override
-    public void saveData() {
+    public List<WarehouseInfo> getWarehouseInfo() {
+        return warehouse.getInfo();
+    }
+
+    private void saveData() {
         FarmState state = FarmStateMapper.getFarmState(farm);
         farmStore.saveFarmState(state);
+    }
+
+    @Override
+    public void loadData() {
+        FarmStateMapper.setFarmState(farm, farmStore.loadFarmState(), registry);
     }
 }

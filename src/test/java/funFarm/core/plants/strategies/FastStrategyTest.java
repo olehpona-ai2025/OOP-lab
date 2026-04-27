@@ -16,19 +16,20 @@ class FastStrategyTest {
 
     @Test
     void shouldGrowImmediatelyToGrewWhenGrowing() {
-        PlantGrowState result = strategy.grow(PlantGrowState.GROWING);
+        PlantGrowState result = strategy.grow(PlantGrowState.GROWING, 0);
+
         assertThat(result).isEqualTo(PlantGrowState.GREW);
     }
 
     @Test
     void shouldGrowImmediatelyToOvergrewWhenGrew() {
-        PlantGrowState result = strategy.grow(PlantGrowState.GREW);
+        PlantGrowState result = strategy.grow(PlantGrowState.GREW, 0);
         assertThat(result).isEqualTo(PlantGrowState.OVERGREW);
     }
 
     @Test
     void shouldRemainOvergrewWhenAlreadyOvergrew() {
-        PlantGrowState result = strategy.grow(PlantGrowState.OVERGREW);
+        PlantGrowState result = strategy.grow(PlantGrowState.OVERGREW, 0);
         assertThat(result).isEqualTo(PlantGrowState.OVERGREW);
     }
 }

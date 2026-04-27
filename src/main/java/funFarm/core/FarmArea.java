@@ -1,5 +1,6 @@
 package funFarm.core;
 
+import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.HarvestResult;
 import funFarm.core.model.PlantGrowState;
 import funFarm.core.model.PlantResult;
@@ -64,9 +65,13 @@ public class FarmArea {
     public HarvestResult harvest() {
         if (this.currentPlant == null || this.currentPlant.getState() == PlantGrowState.GROWING) return new HarvestResult(false, "Not grew yet", 0, currentPlant != null?currentPlant.getPlantName(): null);
 
-        int harvested = this.currentPlant.getBaseYield() * area;
+        int harvested = this.currentPlant.getYield() * area;
         HarvestResult result = new HarvestResult(true, "", harvested, currentPlant.getPlantName());
         this.currentPlant = null;
         return result;
+    }
+
+    public FarmAreaInfo getInfo() {
+        return new FarmAreaInfo(this.id, this.name, this.area, this.currentPlant != null? this.currentPlant.getPlantName(): null, this.currentPlant!= null? this.currentPlant.getState().name(): null);
     }
 }

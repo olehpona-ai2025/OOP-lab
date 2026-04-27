@@ -2,6 +2,7 @@ package funFarm.core;
 
 import funFarm.core.model.PlantGrowState;
 import funFarm.core.plants.Plant;
+import funFarm.core.plants.strategies.FastStrategy;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -13,58 +14,46 @@ public class PlantRegistryTest {
 
     @Test
     void shouldRegisterAndCreateGrowing() {
-        Plant plantMock1 = mock(Plant.class);
-        Plant plantMock2 = mock(Plant.class);
-
-        when(plantMock1.getPlantName()).thenReturn("Test1");
-        when(plantMock2.getPlantName()).thenReturn("Test2");
+        Plant mockPlant1 = new Plant("test1", 10, 10, new FastStrategy());
+        Plant mockPlant2 = new Plant("test2", 5, 5, new FastStrategy());
 
         PlantRegistry registry = new PlantRegistry();
 
-        Function<PlantGrowState, Plant> fabricMock1 = mock(Function.class);
-        when(fabricMock1.apply(any())).thenReturn(plantMock1);
+        registry.register(mockPlant1);
+        registry.register(mockPlant2);
 
-        Function<PlantGrowState, Plant> fabricMock2 = mock(Function.class);
-        when(fabricMock2.apply(any())).thenReturn(plantMock2);
+        Plant created1 = registry.create("test1");
+        Plant created2 = registry.create("test2");
 
-        registry.register(fabricMock1);
-        registry.register(fabricMock2);
-        clearInvocations(fabricMock1);
-        clearInvocations(fabricMock2);
+        assertThat(created1).isNotSameAs(mockPlant1);
+        assertThat(created1.getPlantName()).isEqualTo(mockPlant1.getPlantName());
+        assertThat(created1.getState()).isEqualTo(PlantGrowState.GROWING);
 
-        assertThat(registry.create("Test1")).isEqualTo(plantMock1);
-        verify(fabricMock1).apply(PlantGrowState.GROWING);
-
-        assertThat(registry.create("Test2")).isEqualTo(plantMock2);
-        verify(fabricMock2).apply(PlantGrowState.GROWING);
+        assertThat(created2).isNotSameAs(mockPlant2);
+        assertThat(created2.getPlantName()).isEqualTo(mockPlant2.getPlantName());
+        assertThat(created2.getState()).isEqualTo(PlantGrowState.GROWING);
     }
 
     @Test
     void shouldRegisterAndCreateCustom() {
-        Plant plantMock1 = mock(Plant.class);
-        Plant plantMock2 = mock(Plant.class);
-
-        when(plantMock1.getPlantName()).thenReturn("Test1");
-        when(plantMock2.getPlantName()).thenReturn("Test2");
+        Plant mockPlant1 = new Plant("test1", 10, 10, new FastStrategy());
+        Plant mockPlant2 = new Plant("test2", 5, 5, new FastStrategy());
 
         PlantRegistry registry = new PlantRegistry();
 
-        Function<PlantGrowState, Plant> fabricMock1 = mock(Function.class);
-        when(fabricMock1.apply(any())).thenReturn(plantMock1);
+        registry.register(mockPlant1);
+        registry.register(mockPlant2);
 
-        Function<PlantGrowState, Plant> fabricMock2 = mock(Function.class);
-        when(fabricMock2.apply(any())).thenReturn(plantMock2);
+        Plant created1 = registry.createWithState("test1", PlantGrowState.GROWING);
+        Plant created2 = registry.createWithState("test2", PlantGrowState.GREW);
 
-        registry.register(fabricMock1);
-        registry.register(fabricMock2);
-        clearInvocations(fabricMock1);
-        clearInvocations(fabricMock2);
+        assertThat(created1).isNotSameAs(mockPlant1);
+        assertThat(created1.getPlantName()).isEqualTo(mockPlant1.getPlantName());
+        assertThat(created1.getState()).isEqualTo(PlantGrowState.GROWING);
 
-        assertThat(registry.createWithState("Test1", PlantGrowState.GREW)).isEqualTo(plantMock1);
-        verify(fabricMock1).apply(PlantGrowState.GREW);
-
-        assertThat(registry.createWithState("Test2", PlantGrowState.GROWING)).isEqualTo(plantMock2);
-        verify(fabricMock2).apply(PlantGrowState.GROWING);
+        assertThat(created2).isNotSameAs(mockPlant2);
+        assertThat(created2.getPlantName()).isEqualTo(mockPlant2.getPlantName());
+        assertThat(created2.getState()).isEqualTo(PlantGrowState.GREW);
     }
 
     @Test
