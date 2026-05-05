@@ -172,8 +172,8 @@ class FarmTest {
 
         verify(plantMock1).grow();
         verify(plantMock2).grow();
-        verify(store).saveFarmArea(area1);
-        verify(store).saveFarmArea(area2);
+        verify(store, times(2)).saveFarmArea(area1);
+        verify(store, times(2)).saveFarmArea(area2);
     }
 
     @Test

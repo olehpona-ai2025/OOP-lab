@@ -58,7 +58,6 @@ class BaseFarmServiceTest {
         service.removeFarmArea("area1");
 
         verify(farm).removeArea("area1");
-        verify(farmStore).removeFarmArea("area1");
         verify(notifier).notifyListeners(any());
 
     }

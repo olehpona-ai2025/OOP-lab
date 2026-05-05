@@ -61,7 +61,7 @@ class WarehouseControllerTest {
 
         String jsonRequest = "{\"plantName\":\"Wheat\",\"count\":5}";
 
-        mockMvc.perform(post("/plants")
+        mockMvc.perform(post("/warehouse")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isOk())
@@ -76,7 +76,7 @@ class WarehouseControllerTest {
 
         String jsonRequest = "{\"plantName\":\"Unknown\",\"count\":10}";
 
-        mockMvc.perform(post("/plants")
+        mockMvc.perform(post("/warehouse")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isOk())
