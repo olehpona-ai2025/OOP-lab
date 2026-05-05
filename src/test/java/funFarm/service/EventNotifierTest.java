@@ -1,6 +1,8 @@
 package funFarm.service;
 
-import funFarm.core.model.FarmEvent;
+import funFarm.core.model.events.FarmEvent;
+import funFarm.core.model.events.HarvestEvent;
+import funFarm.core.model.events.PlantEvent;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,7 +23,7 @@ public abstract class EventNotifierTest {
             notifier.registerListener(event -> receivedEvent[finalI] = event);
         }
 
-        FarmEvent toNotify = FarmEvent.planted("Test", 0);
+        FarmEvent toNotify = new PlantEvent("Test", 0);
 
         notifier.notifyListeners(toNotify);
         for (int i =0; i< 4;i ++) {
@@ -37,7 +39,7 @@ public abstract class EventNotifierTest {
 
         notifier.registerListener(event -> count.getAndIncrement());
 
-        FarmEvent toNotify = FarmEvent.planted("Test", 0);
+        FarmEvent toNotify = new HarvestEvent("Test", 0);
         notifier.notifyListeners(toNotify);
         assertThat(count.get()).isEqualTo(1);
     }

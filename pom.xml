@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.olehpona</groupId>
-    <artifactId>lab1V10</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>funFarm</artifactId>
+    <version>1.0</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -61,8 +61,8 @@
                 <configuration>
                     <excludes>
                         <exclude>funFarm/AppConfig.class</exclude>
-                        <exclude>funFarm/**/*_</exclude>
-                        <exclude>funFarm/**/_*</exclude>
+                        <exclude>funFarm/**/*_.class</exclude>
+                        <exclude>funFarm/**/_*.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -116,6 +116,13 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.11</version>
+        </dependency>
+
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-community-dialects</artifactId>
@@ -172,6 +179,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 </project>

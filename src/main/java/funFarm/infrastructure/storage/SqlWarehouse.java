@@ -1,22 +1,25 @@
 package funFarm.infrastructure.storage;
 
-import funFarm.core.Warehouse;
-import funFarm.core.WarehouseException;
+import funFarm.core.warehouse.Warehouse;
+import funFarm.core.warehouse.WarehouseException;
 import funFarm.core.model.WarehouseInfo;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Component("SqlWarehouse")
+@Component("SqlWarehouse")
+@ConditionalOnProperty(name = "storage.warehouse", havingValue = "sql")
 public class SqlWarehouse implements Warehouse {
     private final Connection conn;
 
-    public SqlWarehouse(Connection conn) {
-        this.conn = conn;
-        try (Statement stmt = conn.createStatement()) {
+    public SqlWarehouse(DataSource source) {
+        try {
+            this.conn = source.getConnection();
+            Statement stmt = conn.createStatement();
             stmt.execute("create table if not exists farm_warehouse (id text primary key, count int)");
         } catch (SQLException e) {
             throw new WarehouseException("Failed creating table");
@@ -30,7 +33,6 @@ public class SqlWarehouse implements Warehouse {
         }
         try (PreparedStatement pstmt = conn.prepareStatement("select count from farm_warehouse where id = ?")) {
             pstmt.setString(1, plant);
-            pstmt.execute();
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("count");

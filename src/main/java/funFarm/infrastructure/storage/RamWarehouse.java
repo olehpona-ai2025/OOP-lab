@@ -1,8 +1,9 @@
 package funFarm.infrastructure.storage;
 
-import funFarm.core.Warehouse;
-import funFarm.core.WarehouseException;
+import funFarm.core.warehouse.Warehouse;
+import funFarm.core.warehouse.WarehouseException;
 import funFarm.core.model.WarehouseInfo;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component("RamWarehouse")
+@ConditionalOnProperty(name = "storage.warehouse", havingValue = "ram")
 public class RamWarehouse implements Warehouse {
     private final Map<String, Integer> content = new HashMap<>();
 

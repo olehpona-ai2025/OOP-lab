@@ -1,6 +1,6 @@
 package funFarm.service;
 
-import funFarm.core.model.FarmEvent;
+import funFarm.core.model.events.FarmEvent;
 
 @FunctionalInterface
 public interface EventListener {

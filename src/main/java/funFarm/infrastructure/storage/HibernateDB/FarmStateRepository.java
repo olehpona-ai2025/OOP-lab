@@ -1,10 +1,8 @@
 package funFarm.infrastructure.storage.HibernateDB;
 
 import funFarm.infrastructure.storage.HibernateDB.Entity.FarmAreaEntity;
-import jakarta.data.repository.Delete;
-import jakarta.data.repository.Find;
-import jakarta.data.repository.Repository;
-import jakarta.data.repository.Save;
+import funFarm.infrastructure.storage.HibernateDB.Entity.WorkerEntity;
+import jakarta.data.repository.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,5 +17,8 @@ public interface FarmStateRepository {
     void save(FarmAreaEntity info);
 
     @Delete
-    void removeArea(UUID id);
+    int removeArea(UUID id);
+
+    @Find
+    FarmAreaEntity getArea(UUID id);
 }

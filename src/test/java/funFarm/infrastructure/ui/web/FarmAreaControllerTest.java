@@ -101,19 +101,4 @@ class FarmAreaControllerTest {
         verify(farmService).harvestFarmArea("test");
     }
 
-    @Test
-    void shouldExecuteGrowLoop() throws Exception {
-
-        mockMvc.perform(post("/growLoop")).andExpect(status().isOk());
-        verify(farmService).growLoop();
-
-    }
-
-    @Test
-    void shouldExecuteTurboGrow() throws Exception {
-
-        mockMvc.perform(post("/turboGrow")).andExpect(status().isOk());
-        verify(farmService).turboGrow();
-
-    }
 }

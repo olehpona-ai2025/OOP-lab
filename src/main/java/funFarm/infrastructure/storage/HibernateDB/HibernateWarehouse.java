@@ -1,11 +1,13 @@
 package funFarm.infrastructure.storage.HibernateDB;
 
-import funFarm.core.Warehouse;
-import funFarm.core.WarehouseException;
+import funFarm.core.warehouse.Warehouse;
+import funFarm.core.warehouse.WarehouseException;
 import funFarm.core.model.WarehouseInfo;
 import funFarm.infrastructure.storage.HibernateDB.Entity.WarehouseEntity;
 import jakarta.data.exceptions.EmptyResultException;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,7 @@ import java.util.List;
 
 @Component
 @Primary
+@ConditionalOnProperty(name = "storage.warehouse", havingValue = "hibernate")
 public class HibernateWarehouse implements Warehouse {
     private final WarehouseRepository repository;
 
@@ -43,7 +46,11 @@ public class HibernateWarehouse implements Warehouse {
             throw new WarehouseException("Incorrect key");
         }
         int current = getPlantCount(plant);
-        this.repository.setCount(new WarehouseEntity(plant, current + count));
+        try {
+            this.repository.setCount(new WarehouseEntity(plant, current + count));
+        } catch (OptimisticLockException _) {
+            throw new WarehouseException("Failed locking warehouse entry");
+        }
     }
 
     @Override

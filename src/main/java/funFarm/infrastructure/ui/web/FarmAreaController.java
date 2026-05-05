@@ -4,11 +4,13 @@ import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.HarvestResult;
 import funFarm.core.model.PlantResult;
 import funFarm.service.FarmService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@Profile("web")
 public class FarmAreaController {
     private final FarmService service;
     public FarmAreaController(FarmService service) {
@@ -48,13 +50,4 @@ public class FarmAreaController {
         return service.harvestFarmArea(id);
     }
 
-    @PostMapping("/growLoop")
-    public void growLoop() {
-        service.growLoop();
-    }
-
-    @PostMapping("/turboGrow")
-    public void turboGrow() {
-        service.turboGrow();
-    }
 }

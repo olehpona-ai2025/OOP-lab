@@ -1,7 +1,7 @@
 package funFarm.infrastructure.storage;
 
-import funFarm.core.Warehouse;
-import funFarm.core.WarehouseTest;
+import funFarm.core.warehouse.Warehouse;
+import funFarm.core.warehouse.WarehouseTest;
 
 public class RamWarehouseTest extends WarehouseTest {
     @Override

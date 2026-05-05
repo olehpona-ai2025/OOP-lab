@@ -1,30 +1,22 @@
 package funFarm.infrastructure.storage;
 
-import funFarm.core.Warehouse;
-import funFarm.core.WarehouseTest;
-import org.junit.jupiter.api.AfterEach;
+import funFarm.core.warehouse.Warehouse;
+import funFarm.core.warehouse.WarehouseTest;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class SqlWarehouseTest extends WarehouseTest {
 
     private SqlWarehouse warehouse;
-    private Connection connection;
 
     @BeforeEach
     void setUp() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite::memory:");
-        warehouse = new SqlWarehouse(connection);
-    }
-
-    @AfterEach
-    void tearDown() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.sqlite.JDBC");
+        dataSource.setUrl("jdbc:sqlite::memory:");
+        warehouse = new SqlWarehouse(dataSource);
     }
 
     @Override

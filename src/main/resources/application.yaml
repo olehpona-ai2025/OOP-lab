@@ -1,0 +1,12 @@
+storage:
+  state: "hibernate"
+  analytic: "ram"
+  warehouse: "hibernate"
+  workerDepot: "hibernate"
+
+
+
+spring:
+  profiles:
+    active: web
+

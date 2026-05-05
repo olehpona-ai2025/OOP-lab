@@ -1,27 +1,38 @@
 package funFarm.infrastructure.ui;
 
+import funFarm.core.farm.FarmException;
 import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.FarmReport;
 import funFarm.core.model.HarvestResult;
 import funFarm.core.model.PlantResult;
+import funFarm.core.model.WorkerInfo;
 import funFarm.core.model.WarehouseInfo;
 import funFarm.core.plants.Plant;
-import funFarm.service.FarmService;
-import funFarm.service.View;
+import funFarm.core.warehouse.WarehouseException;
+import funFarm.core.workers.profiles.WorkerProfileType;
+import funFarm.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 
 @Component("ConsoleView")
 @Primary
+@Profile("console")
 public class ConsoleView implements View {
-    private final FarmService service;
+    private final FarmService farmService;
+    private final PlantService plantService;
+    private final WarehouseService warehouseService;
+    private final WorkerService workerService;
 
     @Autowired
-    public ConsoleView(FarmService service) {
-        this.service = service;
+    public ConsoleView(FarmService farmService, PlantService plantService, WarehouseService warehouseService, WorkerService workerService) {
+        this.farmService = farmService;
+        this.plantService = plantService;
+        this.workerService = workerService;
+        this.warehouseService = warehouseService;
     }
 
     public void run() {
@@ -39,13 +50,17 @@ public class ConsoleView implements View {
                     5. Plant farm area
                     6. Harvest farm area
                     7. Get report
-                    8. Grow loop
+                    8. Worker loop
                     9. Turbo grow
                     10. Remove farm area
                     11. Set farm area name
                     12. Load farmState
                     13. Warehouse info
-                    14. Exit
+                    14. Workers list
+                    15. Create worker
+                    16. Assign worker
+                    17. Delete worker
+                    18. Exit
                     """);
 
                 int mode = readInt(scanner, "Enter menu option:");
@@ -53,11 +68,11 @@ public class ConsoleView implements View {
                 switch (mode) {
                     case 1: {
                         int area = readInt(scanner, "Enter area (m^2):");
-                        service.createFarmArea(area);
+                        farmService.createFarmArea(area);
                         break;
                     }
                     case 2:
-                        var plantList = service.getPlants();
+                        var plantList = plantService.getPlants();
 
                         System.out.println("Plant name, Planting cost, Base Yield");
 
@@ -69,14 +84,14 @@ public class ConsoleView implements View {
                         String name = readString(scanner, "Enter plant name:");
                         int count = readInt(scanner, "Enter plant count:");
 
-                        if (!service.buyPlants(name, count)){
+                        if (!warehouseService.buyPlants(name, count)){
                             System.out.println("Failed buying plants");
                         }
 
                         break;
                     }
                     case 4:
-                        var infos = service.getFarmAreas();
+                        var infos = farmService.getFarmAreas();
                         System.out.println("ID, Area, Name, Plant, Plant State");
                         for (FarmAreaInfo info : infos) {
                             System.out.println(info.id() + ", " + info.area() + ", " + info.name()+ ", " + info.plantName() + ", " + info.plantState());
@@ -88,7 +103,7 @@ public class ConsoleView implements View {
 
                         PlantResult res;
                         try {
-                            res = service.plantFarmArea(areaId, plantName);
+                            res = farmService.plantFarmArea(areaId, plantName);
                         } catch (RuntimeException e) {
                             System.out.println("Exception received, msg: " + e.getMessage());
                             break;
@@ -106,7 +121,7 @@ public class ConsoleView implements View {
                         HarvestResult res;
 
                         try {
-                            res = service.harvestFarmArea(areaId);
+                            res = farmService.harvestFarmArea(areaId);
                         } catch (RuntimeException e) {
                             System.out.println("Exception received, msg: " + e.getMessage());
                             break;
@@ -120,37 +135,31 @@ public class ConsoleView implements View {
                         break;
                     }
                     case 7: {
-                        for (FarmReport report: service.getReport()) {
+                        for (FarmReport report: warehouseService.getReport()) {
                             System.out.println(report.plantName() + " " + report.increasePercentage() + "%");
                         }
                         break;
                     }
                     case 8:
-                        service.growLoop();
+                        workerService.workerLoop();
                         break;
-                    case 9:
-                        service.turboGrow();
-                        break;
-                    case 10: {
+                    case 9: {
                         String areaId = readString(scanner, "Enter area id:");
 
-                        service.removeFarmArea(areaId);
+                        farmService.removeFarmArea(areaId);
                         System.out.println("Area removed successfully.");
                         break;
                     }
-                    case 11: {
+                    case 10: {
                         String areaId = readString(scanner, "Enter area id:");
                         String areaName = readString(scanner, "Enter area name:");
 
-                        service.setFarmAreaName(areaId, areaName);
+                        farmService.setFarmAreaName(areaId, areaName);
                         System.out.println("Name set successfully.");
                         break;
                     }
-                    case 12:
-                        service.loadData();
-                        break;
-                    case 13: {
-                        var warehouseItems = service.getWarehouseInfo();
+                    case 11: {
+                        var warehouseItems = warehouseService.getWarehouseInfo();
                         if (warehouseItems.isEmpty()) {
                             System.out.println("Warehouse is empty.");
                         } else {
@@ -161,13 +170,46 @@ public class ConsoleView implements View {
                         }
                         break;
                     }
-                    case 14:
+                    case 12: {
+                        var workers = workerService.getWorkers();
+                        if (workers.isEmpty()) {
+                            System.out.println("Workers list is empty.");
+                        } else {
+                            System.out.println("Worker ID, Profile, Farm Area");
+                            for (WorkerInfo worker : workers) {
+                                System.out.println(worker.id() + ", " + worker.profile() + ", " + worker.farmArea());
+                            }
+                        }
+                        break;
+                    }
+                    case 13: {
+                        WorkerProfileType type = readWorkerProfileType(scanner);
+                        workerService.createWorker(type);
+                        System.out.println("Worker created successfully.");
+                        break;
+                    }
+                    case 14: {
+                        String workerId = readString(scanner, "Enter worker id:");
+                        String farmAreaId = readString(scanner, "Enter farm area id:");
+
+                        workerService.assignWorker(workerId, farmAreaId);
+                        System.out.println("Worker assigned successfully.");
+                        break;
+                    }
+                    case 15: {
+                        String workerId = readString(scanner, "Enter worker id:");
+
+                        workerService.deleteWorker(workerId);
+                        System.out.println("Worker deleted successfully.");
+                        break;
+                    }
+                    case 16:
                         running = false;
                         break;
                     default:
                         System.out.println("Unknown option.");
                 }
-            } catch (funFarm.core.FarmException | funFarm.core.WarehouseException e) {
+            } catch (FarmException | WarehouseException e) {
                 System.out.println("Farm logic error: " + e.getMessage());
             } catch (RuntimeException e) {
                 System.out.println("Unknown system error: " + e);
@@ -194,6 +236,17 @@ public class ConsoleView implements View {
                 return input;
             }
             System.out.println("Error: String cannot be empty. Try again.");
+        }
+    }
+
+    private WorkerProfileType readWorkerProfileType(Scanner scanner) {
+        while (true) {
+            String rawType = readString(scanner, "Enter worker profile type (HUMAN, ROBOT):");
+            try {
+                return WorkerProfileType.valueOf(rawType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: Please enter a valid worker profile type.");
+            }
         }
     }
 }

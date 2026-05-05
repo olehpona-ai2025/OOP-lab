@@ -1,9 +1,10 @@
 package funFarm.infrastructure.storage;
 
-import funFarm.core.Warehouse;
-import funFarm.core.WarehouseTest;
+import funFarm.core.warehouse.Warehouse;
+import funFarm.core.warehouse.WarehouseTest;
 import funFarm.infrastructure.storage.HibernateDB.Entity.FarmAreaEntity;
 import funFarm.infrastructure.storage.HibernateDB.Entity.WarehouseEntity;
+import funFarm.infrastructure.storage.HibernateDB.Entity.WorkerEntity;
 import funFarm.infrastructure.storage.HibernateDB.HibernateWarehouse;
 import funFarm.infrastructure.storage.HibernateDB.WarehouseRepository_;
 import org.hibernate.SessionFactory;
@@ -27,11 +28,8 @@ public class HibernateWarehouseTest extends WarehouseTest {
         dbFile = Files.createTempFile("test-warehouse-", ".db").toFile();
         dbFile.deleteOnExit();
 
-        // Use a real temp file instead of :memory: so that:
-        //   1) hbm2ddl creates tables on this file
-        //   2) the StatelessSession connects to the same file and sees the tables
         sessionFactory = new HibernatePersistenceConfiguration("test")
-                .managedClasses(WarehouseEntity.class, FarmAreaEntity.class)
+                .managedClasses(WarehouseEntity.class, FarmAreaEntity.class, WorkerEntity.class)
                 .property("jakarta.persistence.jdbc.url", "jdbc:sqlite:" + dbFile.getAbsolutePath())
                 .property("hibernate.dialect", "org.hibernate.community.dialect.SQLiteDialect")
                 .property("hibernate.hbm2ddl.auto", "create-drop")

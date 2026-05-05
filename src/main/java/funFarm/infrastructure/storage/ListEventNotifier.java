@@ -1,16 +1,14 @@
 package funFarm.infrastructure.storage;
 
-import funFarm.core.model.FarmEvent;
+import funFarm.core.model.events.FarmEvent;
 import funFarm.service.EventListener;
 import funFarm.service.EventNotifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component("ListEventNotifier")
-@Primary
 public class ListEventNotifier implements EventNotifier {
     private final List<EventListener> listeners = new ArrayList<>();
 

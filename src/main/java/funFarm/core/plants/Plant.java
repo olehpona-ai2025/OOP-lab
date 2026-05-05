@@ -6,7 +6,7 @@ import funFarm.core.plants.strategies.GrowStrategy;
 public class Plant {
     private final String name;
     private PlantGrowState state;
-    private GrowStrategy strategy;
+    private final GrowStrategy strategy;
     private final int plantingCost;
     private final int baseYield;
     private int age = 0;
@@ -19,16 +19,13 @@ public class Plant {
         this.strategy = strategy;
     }
 
-    public Plant(Plant oldPlant, PlantGrowState state) {
+    public Plant(Plant oldPlant, PlantGrowState state, int age) {
         this.name = oldPlant.name;
         this.state = state;
         this.plantingCost = oldPlant.plantingCost;
         this.baseYield = oldPlant.baseYield;
         this.strategy = oldPlant.strategy;
-    }
-
-    public void setStrategy(GrowStrategy strategy) {
-        this.strategy = strategy;
+        this.age = age;
     }
 
     public void grow() {
@@ -39,6 +36,7 @@ public class Plant {
     public PlantGrowState getState() {
         return this.state;
     }
+    public int getAge() {return this.age;}
     public String getPlantName() { return this.name; }
     public int getPlantingCost() {
         return this.plantingCost;

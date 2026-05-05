@@ -2,6 +2,7 @@ package funFarm.infrastructure.ui.web;
 
 import funFarm.core.plants.Plant;
 import funFarm.service.FarmService;
+import funFarm.service.PlantService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -26,7 +27,7 @@ class PlantControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private FarmService farmService;
+    private PlantService farmService;
 
     @Test
     void getPlants() throws Exception {
@@ -44,35 +45,5 @@ class PlantControllerTest {
                 .andExpect(jsonPath("$[0].baseYield").value(20));
 
         verify(farmService).getPlants();
-    }
-
-    @Test
-    void buyPlantSuccess() throws Exception {
-        when(farmService.buyPlants("Wheat", 5)).thenReturn(true);
-
-        String jsonRequest = "{\"plantName\":\"Wheat\",\"count\":5}";
-
-        mockMvc.perform(post("/plants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequest))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-
-        verify(farmService).buyPlants("Wheat", 5);
-    }
-
-    @Test
-    void buyPlantFailure() throws Exception {
-        when(farmService.buyPlants("Unknown", 10)).thenReturn(false);
-
-        String jsonRequest = "{\"plantName\":\"Unknown\",\"count\":10}";
-
-        mockMvc.perform(post("/plants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequest))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(false));
-
-        verify(farmService).buyPlants("Unknown", 10);
     }
 }

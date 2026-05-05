@@ -2,10 +2,14 @@ package funFarm.infrastructure.storage;
 
 import funFarm.infrastructure.storage.HibernateDB.Entity.FarmAreaEntity;
 import funFarm.infrastructure.storage.HibernateDB.Entity.WarehouseEntity;
+import funFarm.infrastructure.storage.HibernateDB.Entity.WorkerEntity;
 import funFarm.infrastructure.storage.HibernateDB.FarmStateRepository_;
 import funFarm.infrastructure.storage.HibernateDB.HibernateStateStore;
-import funFarm.service.FarmStore;
-import funFarm.service.FarmStoreTest;
+import funFarm.core.plants.PlantRegistry;
+import funFarm.core.farm.FarmStore;
+import funFarm.core.plants.Plant;
+import funFarm.core.plants.strategies.FastStrategy;
+import funFarm.core.farm.FarmStoreTest;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.jpa.HibernatePersistenceConfiguration;
@@ -29,7 +33,7 @@ public class HibernateStateStoreTest extends FarmStoreTest {
         dbFile.deleteOnExit();
 
         sessionFactory = new HibernatePersistenceConfiguration("test")
-                .managedClasses(FarmAreaEntity.class, WarehouseEntity.class)
+                .managedClasses(WarehouseEntity.class, FarmAreaEntity.class, WorkerEntity.class)
                 .property("jakarta.persistence.jdbc.url", "jdbc:sqlite:" + dbFile.getAbsolutePath())
                 .property("hibernate.dialect", "org.hibernate.community.dialect.SQLiteDialect")
                 .property("hibernate.hbm2ddl.auto", "create-drop")
@@ -37,6 +41,8 @@ public class HibernateStateStoreTest extends FarmStoreTest {
 
         session = sessionFactory.openStatelessSession();
         session.beginTransaction();
+        PlantRegistry registry = new PlantRegistry();
+        registry.register(new Plant("TestPlant", 2, 5, new FastStrategy()));
         store = new HibernateStateStore(new FarmStateRepository_(new ObjectProvider<>() {
             @Override
             public StatelessSession getObject() { return session; }
@@ -49,7 +55,7 @@ public class HibernateStateStoreTest extends FarmStoreTest {
 
             @Override
             public StatelessSession getIfUnique() { return session; }
-        }));
+        }), registry);
     }
 
     @AfterEach

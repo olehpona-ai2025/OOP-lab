@@ -4,9 +4,14 @@ import funFarm.core.model.FarmAreaInfo;
 import funFarm.core.model.FarmReport;
 import funFarm.core.model.HarvestResult;
 import funFarm.core.model.PlantResult;
+import funFarm.core.model.WorkerInfo;
 import funFarm.core.model.WarehouseInfo;
 import funFarm.core.plants.Plant;
+import funFarm.core.workers.profiles.WorkerProfileType;
 import funFarm.service.FarmService;
+import funFarm.service.PlantService;
+import funFarm.service.WarehouseService;
+import funFarm.service.WorkerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +29,9 @@ import static org.mockito.Mockito.*;
 public class ConsoleViewTest {
 
     private FarmService farmService;
+    private PlantService plantService;
+    private WarehouseService warehouseService;
+    private WorkerService workerService;
     private ConsoleView consoleView;
     private final InputStream originalIn = System.in;
     private final PrintStream originalOut = System.out;
@@ -32,7 +40,10 @@ public class ConsoleViewTest {
     @BeforeEach
     void setUp() {
         farmService = Mockito.mock(FarmService.class);
-        consoleView = new ConsoleView(farmService);
+        plantService = Mockito.mock(PlantService.class);
+        warehouseService = Mockito.mock(WarehouseService.class);
+        workerService = Mockito.mock(WorkerService.class);
+        consoleView = new ConsoleView(farmService, plantService, warehouseService, workerService);
         outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
     }
@@ -47,51 +58,55 @@ public class ConsoleViewTest {
         System.setIn(new ByteArrayInputStream(data.getBytes()));
     }
 
+    private String cmd(ConsoleCommand command) {
+        return command.input() + "\n";
+    }
+
     @Test
     void testExit() {
-        provideInput("14\n");
+        provideInput(cmd(ConsoleCommand.EXIT));
         consoleView.run();
-        verifyNoInteractions(farmService);
+        verifyNoInteractions(farmService, plantService, warehouseService, workerService);
     }
 
     @Test
     void testAddFarmArea() {
-        provideInput("1\n100\n14\n");
+        provideInput(cmd(ConsoleCommand.ADD_FARM_AREA) + "100\n" + cmd(ConsoleCommand.EXIT));
         consoleView.run();
         verify(farmService).createFarmArea(100);
     }
 
     @Test
     void testPlantList() {
-        provideInput("2\n14\n");
+        provideInput(cmd(ConsoleCommand.PLANT_LIST) + cmd(ConsoleCommand.EXIT));
         
         Plant plantMock = mock(Plant.class);
         when(plantMock.getPlantName()).thenReturn("Wheat");
         when(plantMock.getPlantingCost()).thenReturn(10);
         when(plantMock.getBaseYield()).thenReturn(20);
         
-        when(farmService.getPlants()).thenReturn(List.of(plantMock));
+        when(plantService.getPlants()).thenReturn(List.of(plantMock));
         
         consoleView.run();
         
-        verify(farmService).getPlants();
+        verify(plantService).getPlants();
         assertTrue(outContent.toString().contains("Wheat 10 20"));
     }
 
     @Test
     void testBuyPlant() {
-        provideInput("3\nWheat\n5\n14\n");
-        when(farmService.buyPlants("Wheat", 5)).thenReturn(true);
+        provideInput(cmd(ConsoleCommand.BUY_PLANT) + "Wheat\n5\n" + cmd(ConsoleCommand.EXIT));
+        when(warehouseService.buyPlants("Wheat", 5)).thenReturn(true);
         
         consoleView.run();
         
-        verify(farmService).buyPlants("Wheat", 5);
+        verify(warehouseService).buyPlants("Wheat", 5);
     }
 
     @Test
     void testBuyPlantWithError() {
-        provideInput("3\nWheat\n5\n14\n");
-        when(farmService.buyPlants("Wheat", 5)).thenReturn(false);
+        provideInput(cmd(ConsoleCommand.BUY_PLANT) + "Wheat\n5\n" + cmd(ConsoleCommand.EXIT));
+        when(warehouseService.buyPlants("Wheat", 5)).thenReturn(false);
 
         consoleView.run();
 
@@ -101,7 +116,7 @@ public class ConsoleViewTest {
 
     @Test
     void testFarmAreasList() {
-        provideInput("4\n14\n");
+        provideInput(cmd(ConsoleCommand.FARM_AREAS_LIST) + cmd(ConsoleCommand.EXIT));
         FarmAreaInfo info = new FarmAreaInfo("1", "Area1",100, "Wheat", "Planted");
         when(farmService.getFarmAreas()).thenReturn(List.of(info));
         
@@ -113,7 +128,7 @@ public class ConsoleViewTest {
 
     @Test
     void testPlantFarmArea() {
-        provideInput("5\narea1\nWheat\n14\n");
+        provideInput(cmd(ConsoleCommand.PLANT_FARM_AREA) + "area1\nWheat\n" + cmd(ConsoleCommand.EXIT));
         when(farmService.plantFarmArea("area1", "Wheat")).thenReturn(new PlantResult(true, "", 0));
         
         consoleView.run();
@@ -123,7 +138,7 @@ public class ConsoleViewTest {
 
     @Test
     void testPlantFarmAreaWithError() {
-        provideInput("5\narea1\nWheat\n14\n");
+        provideInput(cmd(ConsoleCommand.PLANT_FARM_AREA) + "area1\nWheat\n" + cmd(ConsoleCommand.EXIT));
         when(farmService.plantFarmArea("area1", "Wheat")).thenThrow(new RuntimeException("test msg"));
 
         consoleView.run();
@@ -133,7 +148,7 @@ public class ConsoleViewTest {
 
     @Test
     void testHarvestFarmArea() {
-        provideInput("6\narea1\n14\n");
+        provideInput(cmd(ConsoleCommand.HARVEST_FARM_AREA) + "area1\n" + cmd(ConsoleCommand.EXIT));
         when(farmService.harvestFarmArea("area1")).thenReturn(new HarvestResult(true, "", 10, ""));
         
         consoleView.run();
@@ -143,77 +158,93 @@ public class ConsoleViewTest {
 
     @Test
     void testGetReport() {
-        provideInput("7\n14\n");
-        when(farmService.getReport()).thenReturn(List.of(new FarmReport("Wheat", 15)));
+        provideInput(cmd(ConsoleCommand.GET_REPORT) + cmd(ConsoleCommand.EXIT));
+        when(warehouseService.getReport()).thenReturn(List.of(new FarmReport("Wheat", 15)));
         
         consoleView.run();
         
-        verify(farmService).getReport();
+        verify(warehouseService).getReport();
         assertTrue(outContent.toString().contains("Wheat 15%"));
     }
 
     @Test
-    void testGrowLoop() {
-        provideInput("8\n14\n");
+    void testWorkerLoop() {
+        provideInput(cmd(ConsoleCommand.WORKER_LOOP) + cmd(ConsoleCommand.EXIT));
         consoleView.run();
-        verify(farmService).growLoop();
-    }
-
-    @Test
-    void testTurboGrow() {
-        provideInput("9\n14\n");
-        consoleView.run();
-        verify(farmService).turboGrow();
+        verify(workerService).workerLoop();
     }
 
     @Test
     void testRemoveFarmArea() {
-        provideInput("10\narea1\n14\n");
+        provideInput(cmd(ConsoleCommand.REMOVE_FARM_AREA) + "area1\n" + cmd(ConsoleCommand.EXIT));
         consoleView.run();
         verify(farmService).removeFarmArea("area1");
     }
 
     @Test
     void testSetFarmAreaName() {
-        provideInput("11\narea1\nNewName\n14\n");
+        provideInput(cmd(ConsoleCommand.SET_FARM_AREA_NAME) + "area1\nNewName\n" + cmd(ConsoleCommand.EXIT));
         consoleView.run();
         verify(farmService).setFarmAreaName("area1", "NewName");
     }
 
     @Test
-    void testLoadFarmState() {
-        provideInput("12\n14\n");
-        consoleView.run();
-        verify(farmService).loadData();
-    }
-
-    @Test
     void testWarehouseInfo() {
-        provideInput("13\n14\n");
-        when(farmService.getWarehouseInfo()).thenReturn(List.of(new WarehouseInfo("Wheat", 100)));
+        provideInput(cmd(ConsoleCommand.WAREHOUSE_INFO) + cmd(ConsoleCommand.EXIT));
+        when(warehouseService.getWarehouseInfo()).thenReturn(List.of(new WarehouseInfo("Wheat", 100)));
         consoleView.run();
-        verify(farmService).getWarehouseInfo();
+        verify(warehouseService).getWarehouseInfo();
         assertTrue(outContent.toString().contains("Wheat, 100"));
     }
 
     @Test
+    void testWorkersList() {
+        provideInput(cmd(ConsoleCommand.WORKERS_LIST) + cmd(ConsoleCommand.EXIT));
+        when(workerService.getWorkers()).thenReturn(List.of(new WorkerInfo("w1", "HUMAN", "a1")));
+
+        consoleView.run();
+
+        verify(workerService).getWorkers();
+        assertTrue(outContent.toString().contains("w1, HUMAN, a1"));
+    }
+
+    @Test
+    void testCreateWorker() {
+        provideInput(cmd(ConsoleCommand.CREATE_WORKER) + "HUMAN\n" + cmd(ConsoleCommand.EXIT));
+
+        consoleView.run();
+
+        verify(workerService).createWorker(WorkerProfileType.HUMAN);
+    }
+
+    @Test
+    void testAssignWorker() {
+        provideInput(cmd(ConsoleCommand.ASSIGN_WORKER) + "worker1\narea1\n" + cmd(ConsoleCommand.EXIT));
+
+        consoleView.run();
+
+        verify(workerService).assignWorker("worker1", "area1");
+    }
+
+    @Test
+    void testDeleteWorker() {
+        provideInput(cmd(ConsoleCommand.DELETE_WORKER) + "worker1\n" + cmd(ConsoleCommand.EXIT));
+
+        consoleView.run();
+
+        verify(workerService).deleteWorker("worker1");
+    }
+
+    @Test
     void testInvalidMenuOption() {
-        provideInput("99\n14\n");
+        provideInput("99\n" + cmd(ConsoleCommand.EXIT));
         consoleView.run();
         assertTrue(outContent.toString().contains("Unknown option."));
     }
 
     @Test
-    void testFarmExceptionHandling() {
-        provideInput("8\n14\n");
-        doThrow(new funFarm.core.FarmException("Test exception")).when(farmService).growLoop();
-        consoleView.run();
-        assertTrue(outContent.toString().contains("Farm logic error: Test exception"));
-    }
-
-    @Test
     void testReadIntWithInvalidInput() {
-        provideInput("1\ninvalid\n100\n14\n");
+        provideInput(cmd(ConsoleCommand.ADD_FARM_AREA) + "invalid\n100\n" + cmd(ConsoleCommand.EXIT));
         consoleView.run();
         assertTrue(outContent.toString().contains("Error: Please enter a valid number."));
         verify(farmService).createFarmArea(100);
@@ -221,10 +252,10 @@ public class ConsoleViewTest {
 
     @Test
     void testReadStringWithEmptyInput() {
-        provideInput("3\n\nWheat\n5\n14\n");
-        when(farmService.buyPlants("Wheat", 5)).thenReturn(true);
+        provideInput(cmd(ConsoleCommand.BUY_PLANT) + "\nWheat\n5\n" + cmd(ConsoleCommand.EXIT));
+        when(warehouseService.buyPlants("Wheat", 5)).thenReturn(true);
         consoleView.run();
         assertTrue(outContent.toString().contains("Error: String cannot be empty. Try again."));
-        verify(farmService).buyPlants("Wheat", 5);
+        verify(warehouseService).buyPlants("Wheat", 5);
     }
 }
