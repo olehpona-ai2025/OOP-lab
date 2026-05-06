@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 env:
-  AWS_REGION: funfarm_repo
-  ECR_REPOSITORY: your-ecr-repo-name
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: funfarm_repo
   ECS_CLUSTER: funfarm-fargate-cluster
   ECS_SERVICE: funfarm-app-service
   CONTAINER_NAME: funfarm-app-container
