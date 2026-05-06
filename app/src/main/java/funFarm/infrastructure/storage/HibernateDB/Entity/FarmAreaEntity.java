@@ -7,15 +7,24 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Table(name = "farm_area_entity")
 public class FarmAreaEntity {
     @Id
     @GeneratedValue
     public UUID id;
+
     @NonNull
     public String name;
+
     public int area;
+
+    @Column(name = "plant_name")
     public String plantName;
+
+    @Column(name = "plant_state")
     public String plantState;
+
+    @Column(name = "plant_age")
     public int plantAge;
 
     @Version

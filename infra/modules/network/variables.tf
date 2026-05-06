@@ -4,7 +4,7 @@ variable "load_balancer_security_group_id" {
 
 variable "health_check_path" {
   type = string
-  default = "/farmArea"
+  default = "/actuator/health"
 }
 
 variable "listener_port" {

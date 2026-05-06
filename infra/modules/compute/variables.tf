@@ -46,3 +46,7 @@ variable "load_balancer_target_arn" {
 variable "aws_region" {
   type = string
 }
+
+variable "github_repo_name" {
+  type = string
+}

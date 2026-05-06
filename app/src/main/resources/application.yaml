@@ -5,6 +5,8 @@ storage:
   workerDepot: "hibernate"
 
 
+springdoc:
+  show-actuator: true
 
 spring:
   profiles:

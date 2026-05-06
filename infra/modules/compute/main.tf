@@ -1,3 +1,7 @@
+resource "aws_ecr_repository" "app_repo" {
+  name = "funfarm_repo"
+}
+
 resource "aws_iam_role" "ecs_execution_role" {
   name = "ecs_execution_role"
 
@@ -40,7 +44,6 @@ resource "aws_ecs_cluster" "main" {
 
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name = "funfarm-ecs"
-  region = var.aws_region
 }
 
 resource "aws_ecs_task_definition" "app" {
@@ -109,4 +112,75 @@ resource "aws_ecs_service" "app_service" {
     container_port   = 8080
   }
 
+}
+
+//Github action upload and deploy
+
+resource "aws_iam_openid_connect_provider" "github" {
+  client_id_list  = ["sts.amazonaws.com"]
+  url             = "https://token.actions.githubusercontent.com"
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+}
+
+resource "aws_iam_role" "github_action_role" {
+  name = "github_action_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Condition = {
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo_name}:*"
+          }
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+
+data "aws_iam_policy_document" "ecs_policy_data" {
+  statement {
+    effect    = "Allow"
+    actions   = ["ecs:RegisterTaskDefinition", "ecs:DescribeTaskDefinition"]
+    resources = ["*"]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["ecs:UpdateService"]
+    resources = [aws_ecs_service.app_service.arn]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [aws_iam_role.ecs_execution_role.arn]
+  }
+}
+
+resource "aws_iam_policy" "ecs_policy" {
+  name        = "ecs_policy_data"
+  description = "Ecs policy for github action"
+  policy      = data.aws_iam_policy_document.ecs_policy_data.json
+}
+
+resource "aws_iam_policy_attachment" "github_action_ecr_policy_attachment" {
+  name       = "github_action_ecr_policy_attachment"
+  roles      = [aws_iam_role.github_action_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
+}
+
+resource "aws_iam_policy_attachment" "github_action_ecs_policy_attachment" {
+  name       = "github_action_ecs_policy_attachment"
+  roles      = [aws_iam_role.github_action_role.name]
+  policy_arn = aws_iam_policy.ecs_policy.arn
 }

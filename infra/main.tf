@@ -54,8 +54,17 @@ module "compute"{
   load_balancer_target_arn = module.network.target_arn
 
   aws_region = var.aws_region
+  github_repo_name = "olehpona-ai2025/OOP-lab"
 }
 
 output "website_url" {
   value = "http://${module.network.ld_dns}"
+}
+
+output "repository_name" {
+  value = module.compute.ecr_name
+}
+
+output "repository_arn" {
+  value = module.compute.ecr_arn
 }

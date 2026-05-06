@@ -12,6 +12,7 @@ import funFarm.infrastructure.storage.HibernateDB.*;
 import funFarm.service.AnalyticStore;
 import funFarm.service.EventNotifier;
 import funFarm.service.View;
+import org.flywaydb.core.Flyway;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.springframework.beans.factory.ObjectProvider;
@@ -48,6 +49,7 @@ public class AppConfig {
     @Bean
     @ConditionalOnExpression("'${storage.state}' == 'hibernate' || '${storage.warehouse}' == 'hibernate' || '${storage.workerDepot}' == 'hibernate'")
     public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
+        Flyway.configure().dataSource(dataSource).load().migrate();
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
         sessionFactory.setPackagesToScan(
