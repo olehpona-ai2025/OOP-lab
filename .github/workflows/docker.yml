@@ -1,7 +1,9 @@
 name: Deploy to ECS
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
     branches: [main]
 
 env:

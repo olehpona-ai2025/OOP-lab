@@ -156,7 +156,7 @@ data "aws_iam_policy_document" "ecs_policy_data" {
 
   statement {
     effect    = "Allow"
-    actions   = ["ecs:UpdateService"]
+    actions   = ["ecs:UpdateService", "ecs:DescribeServices"]
     resources = [aws_ecs_service.app_service.arn]
   }
 
