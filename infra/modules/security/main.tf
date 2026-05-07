@@ -13,6 +13,8 @@ module "vpc" {
   database_subnets = ["10.0.21.0/24", "10.0.22.0/24"]
 
   enable_nat_gateway = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 }
 
 resource "aws_security_group" "alb_sg" {
@@ -78,6 +80,7 @@ resource "aws_security_group" "vpc_endpoints_sg" {
   }
 }
 
+
 module "vpc_endpoints" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
   version = "6.6.1"
@@ -85,13 +88,9 @@ module "vpc_endpoints" {
   vpc_id             = module.vpc.vpc_id
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 
-  endpoints = {
-    s3 = {
-      service         = "s3"
-      endpoint_type   = "Gateway"
-      route_table_ids = module.vpc.private_route_table_ids
-    },
+  depends_on = [module.vpc]
 
+  endpoints = {
     ecr_api = {
       service             = "ecr.api"
       private_dns_enabled = true
@@ -113,4 +112,19 @@ module "vpc_endpoints" {
       subnet_ids          = module.vpc.private_subnets
     }
   }
+}
+
+data "aws_region" "current" {}
+
+data "aws_route_tables" "all_vpc_routes" {
+  vpc_id     = module.vpc.vpc_id
+  depends_on = [module.vpc]
+}
+
+resource "aws_vpc_endpoint" "s3_direct" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids   = data.aws_route_tables.all_vpc_routes.ids
 }
