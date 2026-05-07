@@ -9,12 +9,16 @@ import funFarm.core.plants.strategies.StepStrategy;
 import funFarm.core.workers.WorkerDepot;
 import funFarm.core.workers.WorkerDepotStore;
 import funFarm.infrastructure.storage.HibernateDB.*;
+import funFarm.infrastructure.storage.HibernateDB.Entity.FarmAreaEntity;
+import funFarm.infrastructure.storage.HibernateDB.Entity.WarehouseEntity;
+import funFarm.infrastructure.storage.HibernateDB.Entity.WorkerEntity;
 import funFarm.service.AnalyticStore;
 import funFarm.service.EventNotifier;
 import funFarm.service.View;
 import org.flywaydb.core.Flyway;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -34,6 +38,13 @@ import java.sql.Connection;
 
 @Configuration
 @ComponentScan(basePackages = "funFarm")
+@RegisterReflectionForBinding({
+        WorkerEntity.class,
+        WarehouseEntity.class,
+        FarmAreaEntity.class,
+        org.springframework.orm.jpa.hibernate.SpringSessionContext.class,
+        java.util.UUID[].class
+})
 public class AppConfig {
 
     @Bean
@@ -49,11 +60,19 @@ public class AppConfig {
     @Bean
     @ConditionalOnExpression("'${storage.state}' == 'hibernate' || '${storage.warehouse}' == 'hibernate' || '${storage.workerDepot}' == 'hibernate'")
     public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
-        Flyway.configure().dataSource(dataSource).load().migrate();
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("filesystem:/app/db/migration")
+                .load()
+                .migrate();
+
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
-        sessionFactory.setPackagesToScan(
-                "funFarm.infrastructure.storage.HibernateDB.Entity");
+        sessionFactory.setAnnotatedClasses(
+                WorkerEntity.class,
+                WarehouseEntity.class,
+                FarmAreaEntity.class
+        );
 
         return sessionFactory;
     }

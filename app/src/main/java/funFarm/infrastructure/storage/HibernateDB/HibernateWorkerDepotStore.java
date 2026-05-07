@@ -112,11 +112,13 @@ public class HibernateWorkerDepotStore implements WorkerDepotStore {
 
     private Worker workerEntityToWorker(WorkerEntity entity) {
         Worker worker = new Worker(WorkerProfileType.valueOf(entity.profileName), entity.workProgress);
-        worker.setState(entity.state);
 
         if (entity.farmArea != null) {
             worker.assignFarmArea(entity.farmArea.id.toString());
         }
+
+        worker.setState(entity.state);
+
         return worker;
     }
 
