@@ -12,8 +12,7 @@ module "vpc" {
   private_subnets  = ["10.0.11.0/24", "10.0.12.0/24"]
   database_subnets = ["10.0.21.0/24", "10.0.22.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway = false
 }
 
 resource "aws_security_group" "alb_sg" {
@@ -63,5 +62,55 @@ resource "aws_security_group" "db_sg" {
     to_port         = var.db_port
     protocol        = "tcp"
     security_groups = [aws_security_group.app_sg.id]
+  }
+}
+
+resource "aws_security_group" "vpc_endpoints_sg" {
+  name        = "vpc-endpoints-sg"
+  vpc_id      = module.vpc.vpc_id
+  description = "Security group for VPC Endpoints"
+
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app_sg.id]
+  }
+}
+
+module "vpc_endpoints" {
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "6.6.1"
+
+  vpc_id             = module.vpc.vpc_id
+  security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
+
+  endpoints = {
+    s3 = {
+      service         = "s3"
+      endpoint_type   = "Gateway"
+      route_table_ids = module.vpc.private_route_table_ids
+    },
+
+    ecr_api = {
+      service             = "ecr.api"
+      private_dns_enabled = true
+      subnet_ids          = module.vpc.private_subnets
+    },
+    ecr_dkr = {
+      service             = "ecr.dkr"
+      private_dns_enabled = true
+      subnet_ids          = module.vpc.private_subnets
+    },
+    logs = {
+      service             = "logs"
+      private_dns_enabled = true
+      subnet_ids          = module.vpc.private_subnets
+    },
+    secretsmanager = {
+      service             = "secretsmanager"
+      private_dns_enabled = true
+      subnet_ids          = module.vpc.private_subnets
+    }
   }
 }
