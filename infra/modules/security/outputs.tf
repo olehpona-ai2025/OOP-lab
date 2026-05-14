@@ -25,3 +25,11 @@ output "public_subnets" {
 output "db_subnets" {
   value = module.vpc.database_subnets
 }
+
+output "user_access_secret_arn"{
+  value = aws_secretsmanager_secret.user_access_secret.arn
+}
+
+output "user_access_secret_string" {
+  value = "${random_password.john_password.result}=John, ${random_password.oleh_password.result}=Oleh"
+}

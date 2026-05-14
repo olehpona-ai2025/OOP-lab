@@ -47,6 +47,10 @@ variable "aws_region" {
   type = string
 }
 
+variable "user_access_secret_arn" {
+  type = string
+}
+
 variable "github_repo_name" {
   type = string
 }

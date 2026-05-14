@@ -6,6 +6,7 @@ import funFarm.core.workers.WorkerDepotStore;
 import funFarm.core.model.WorkerInfo;
 import funFarm.core.workers.profiles.WorkerProfileType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,22 +22,26 @@ public class BaseWorkerService implements WorkerService{
         this.depotStore = store;
     }
 
+    @Transactional
     @Override
     public void assignWorker(String workerId, String farmAreaId) {
         this.depotStore.assignWorker(workerId, farmAreaId);
     }
 
+    @Transactional
     @Override
     public void createWorker(WorkerProfileType type) {
         this.depotStore.addWorker(type);
     }
 
+    @Transactional
     @Override
     public void deleteWorker(String workerId) {
         this.depotStore.removeWorker(workerId);
     }
 
     @Override
+    @Transactional
     public void workerLoop() {
         for (String id: this.depot.workLoop()) {
             farm.areaLoop(id);

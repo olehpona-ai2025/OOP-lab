@@ -128,3 +128,39 @@ resource "aws_vpc_endpoint" "s3_direct" {
 
   route_table_ids   = data.aws_route_tables.all_vpc_routes.ids
 }
+
+# Базова роль для ECS
+resource "aws_iam_role" "ecs_execution_role" {
+  name = "ecs-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "random_password" "john_password" {
+  length  = 16
+  special = false
+}
+
+resource "random_password" "oleh_password" {
+  length  = 16
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "user_access_secret" {
+  name        = "funfarm/user-access"
+}
+
+resource "aws_secretsmanager_secret_version" "app_env_secret_version" {
+  secret_id = aws_secretsmanager_secret.user_access_secret.id
+
+  secret_string = "${random_password.john_password.result}=John, ${random_password.oleh_password.result}=Oleh"
+}

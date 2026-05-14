@@ -1,17 +1,43 @@
+version: '3.8'
+
 services:
   web:
-    image: funfarm
+    image: funfarm:latest
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/admin"
-      SPRING_DATASOURCE_DRIVER-CLASS-NAME: "org.postgresql.Driver"
-      SPRING_DATASOURCE_USERNAME: "admin"
-      SPRING_DATASOURCE_PASSWORD: "admin"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${DB_NAME}"
+      SPRING_DATASOURCE_USERNAME: "${DB_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${DB_PASS}"
+      APP_API_SECRETS: "${APP_SECRETS}"
+    
     depends_on:
-      - db
+      db:
+        condition: service_healthy 
+    networks:
+      - farm-network
+
   db:
     image: postgres
+    ports:
+      - "5432:5432"
     environment:
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASS}"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - farm-network
+
+volumes:
+  pgdata:
+
+networks:
+  farm-network:
+    driver: bridge

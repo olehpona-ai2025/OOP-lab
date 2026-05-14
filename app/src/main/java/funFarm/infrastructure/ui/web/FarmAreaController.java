@@ -34,7 +34,7 @@ public class FarmAreaController {
     }
 
     private record UpdateFarmAreaBody(String name){};
-    @PutMapping("/farmArea/{id}")
+    @PatchMapping("/farmArea/{id}")
     public void updateFarmArea(@PathVariable String id, @RequestBody UpdateFarmAreaBody body) {
         service.setFarmAreaName(id, body.name());
     }

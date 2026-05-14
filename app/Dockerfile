@@ -10,7 +10,7 @@ LABEL authors="olegpona"
 FROM eclipse-temurin:25
 WORKDIR /app
 COPY --from=builder /build/target/funFarm-1.0.jar app.jar
-COPY db/migration /app/db/migration
+COPY src/main/resources/db/migration /app/db/migration
 EXPOSE 8080/tcp
 
 ENV SPRINGDOC_API-DOCS_ENABLED="false"

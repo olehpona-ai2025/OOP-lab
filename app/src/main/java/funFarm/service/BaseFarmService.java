@@ -43,6 +43,7 @@ public class BaseFarmService implements FarmService {
         notifier.notifyListeners(new FarmAreaDeletedEvent(area));
     }
 
+    @Transactional
     @Override
     public void setFarmAreaName(String id, String name) {
         farm.setFarmAreaName(id, name);

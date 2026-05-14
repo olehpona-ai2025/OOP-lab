@@ -27,7 +27,7 @@ resource "aws_iam_role_policy" "ecs_execution_secret" {
       {
         Action = "secretsmanager:GetSecretValue"
         Effect = "Allow"
-        Resource = [var.db_password_arn]
+        Resource = [var.db_password_arn, var.user_access_secret_arn]
       }
     ]
   })
@@ -79,7 +79,8 @@ resource "aws_ecs_task_definition" "app" {
       ]
       secrets = [
         {
-          name="SPRING_DATASOURCE_PASSWORD", valueFrom = "${var.db_password_arn}:password::"
+          name="SPRING_DATASOURCE_PASSWORD", valueFrom = "${var.db_password_arn}:password::",
+          name="APP_API_SECRETS", valueFrom = var.user_access_secret_arn
         }]
       logConfiguration = {
         logDriver = "awslogs"

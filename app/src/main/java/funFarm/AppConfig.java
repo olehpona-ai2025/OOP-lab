@@ -8,6 +8,7 @@ import funFarm.core.plants.strategies.FastStrategy;
 import funFarm.core.plants.strategies.StepStrategy;
 import funFarm.core.workers.WorkerDepot;
 import funFarm.core.workers.WorkerDepotStore;
+import funFarm.infrastructure.security.ActorContext;
 import funFarm.infrastructure.storage.HibernateDB.*;
 import funFarm.infrastructure.storage.HibernateDB.Entity.FarmAreaEntity;
 import funFarm.infrastructure.storage.HibernateDB.Entity.WarehouseEntity;
@@ -25,11 +26,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.hibernate.HibernateTransactionManager;
 import org.springframework.orm.jpa.hibernate.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -38,6 +40,7 @@ import java.sql.Connection;
 
 @Configuration
 @ComponentScan(basePackages = "funFarm")
+@EnableTransactionManagement
 @RegisterReflectionForBinding({
         WorkerEntity.class,
         WarehouseEntity.class,
@@ -62,7 +65,6 @@ public class AppConfig {
     public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
         Flyway.configure()
                 .dataSource(dataSource)
-                .locations("filesystem:/app/db/migration")
                 .load()
                 .migrate();
 
@@ -79,12 +81,8 @@ public class AppConfig {
 
     @Bean
     @ConditionalOnExpression("'${storage.state}' == 'hibernate' || '${storage.warehouse}' == 'hibernate' || '${storage.workerDepot}' == 'hibernate'")
-    public PlatformTransactionManager transactionManager(SessionFactory sessionFactory, DataSource dataSource) {
-        HibernateTransactionManager txManager = new HibernateTransactionManager();
-        txManager.setDataSource(dataSource);
-        txManager.setSessionFactory(sessionFactory);
-
-        return txManager;
+    public PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 
     @Bean
@@ -154,7 +152,16 @@ public class AppConfig {
                 }
 
                 Connection conn = DataSourceUtils.getConnection(dataSource);
+                String currentActor = ActorContext.get();
 
+                if (currentActor != null) {
+                    try (java.sql.PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.actor', ?, true)")) {
+                        ps.setString(1, currentActor);
+                        ps.execute();
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+                }
                 StatelessSession session = sessionFactory.withStatelessOptions().connection(conn).openStatelessSession();
 
                 if (TransactionSynchronizationManager.isSynchronizationActive()) {

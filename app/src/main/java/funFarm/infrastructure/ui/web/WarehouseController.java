@@ -2,7 +2,6 @@ package funFarm.infrastructure.ui.web;
 
 import funFarm.core.model.FarmReport;
 import funFarm.core.model.WarehouseInfo;
-import funFarm.service.FarmService;
 import funFarm.service.WarehouseService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;

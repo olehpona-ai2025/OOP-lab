@@ -49,6 +49,8 @@ module "compute"{
   db_user = module.db.db_instance_user
   db_password_arn = module.db.db_instance_master_key_arn
 
+  user_access_secret_arn = module.security.user_access_secret_arn
+
   private_subnets = module.security.private_subnets
   security_group_id = module.security.app_sg_id
   load_balancer_target_arn = module.network.target_arn
@@ -67,4 +69,9 @@ output "repository_name" {
 
 output "repository_arn" {
   value = module.compute.ecr_arn
+}
+
+output "user_access_secret" {
+  value = module.security.user_access_secret_string
+  sensitive = true
 }

@@ -8,6 +8,7 @@ import funFarm.core.model.FarmReport;
 import funFarm.core.model.WarehouseInfo;
 import funFarm.core.plants.Plant;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class BaseWarehouseService implements WarehouseService {
         this.registry = registry;
     }
 
+    @Transactional
     @Override
     public boolean buyPlants(String plantName, int plantCount) {
         Plant toBuy = registry.create(plantName);
