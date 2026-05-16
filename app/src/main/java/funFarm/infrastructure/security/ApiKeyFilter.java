@@ -49,7 +49,13 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        if (keyStore.isEmpty()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String apiKey = request.getHeader(HEADER);
+
 
         if (apiKey != null) {
             String actorName = keyStore.get(apiKey);
@@ -62,6 +68,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 response.getWriter().write("{\"error\": \"Unauthorized\"}");
                 return;
             }
+        } else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+            return;
         }
 
         try {
