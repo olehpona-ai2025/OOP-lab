@@ -62,11 +62,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 response.getWriter().write("{\"error\": \"Unauthorized\"}");
                 return;
             }
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write("{\"error\": \"Unauthorized\"}");
-            return;
         }
 
         try {
