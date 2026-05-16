@@ -156,7 +156,7 @@ resource "random_password" "oleh_password" {
 }
 
 resource "aws_secretsmanager_secret" "user_access_secret" {
-  name        = "funfarm/user-access"
+  name        = "funfarm/user-access2"
 }
 
 resource "aws_secretsmanager_secret_version" "app_env_secret_version" {

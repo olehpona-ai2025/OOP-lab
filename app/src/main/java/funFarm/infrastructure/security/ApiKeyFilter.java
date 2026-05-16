@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,15 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
     private final Map<String, String> keyStore;
 
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    private final List<String> excludedPaths = Arrays.asList(
+            "/actuator/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
+    );
+
     public ApiKeyFilter(@Value("${app.api.secrets:}") String secretsConfig) {
         this.keyStore = Arrays.stream(secretsConfig.split(","))
                 .filter(s -> s.contains("="))
@@ -31,21 +42,32 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return excludedPaths.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String apiKey = request.getHeader(HEADER);
 
         if (apiKey != null) {
-            String actorName = keyStore.get(apiKey); 
-            
+            String actorName = keyStore.get(apiKey);
+
             if (actorName != null) {
                 ActorContext.set(actorName);
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setHeader("Content-Type", "application/json");
                 response.getWriter().write("{\"error\": \"Unauthorized\"}");
-                return; 
+                return;
             }
-        } 
+        } else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+            return;
+        }
 
         try {
             filterChain.doFilter(request, response);

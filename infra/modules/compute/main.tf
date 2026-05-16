@@ -80,6 +80,7 @@ resource "aws_ecs_task_definition" "app" {
       secrets = [
         {
           name="SPRING_DATASOURCE_PASSWORD", valueFrom = "${var.db_password_arn}:password::",
+        }, {
           name="APP_API_SECRETS", valueFrom = var.user_access_secret_arn
         }]
       logConfiguration = {

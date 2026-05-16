@@ -40,7 +40,7 @@ module "db" {
 module "compute"{
   source = "./modules/compute"
 
-  compute_container_image = "622623004059.dkr.ecr.${var.aws_region}.amazonaws.com/funfarm:latest"
+  compute_container_image = "622623004059.dkr.ecr.us-east-1.amazonaws.com/funfarm_repo:810a0841269971c6a5973d35559f540f53a4d4ca"
   compute_os_family="LINUX"
   compute_cpu_arch="ARM64"
 
